@@ -1,0 +1,26 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Utano.API/Utano.API.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/">
+    <Project Path="src/Modules/Utano.Module.Appointments/Utano.Module.Appointments.csproj" />
+    <Project Path="src/Modules/Utano.Module.Billing/Utano.Module.Billing.csproj" />
+    <Project Path="src/Modules/Utano.Module.ClinicalNotes/Utano.Module.ClinicalNotes.csproj" />
+    <Project Path="src/Modules/Utano.Module.Inventory/Utano.Module.Inventory.csproj" />
+    <Project Path="src/Modules/Utano.Module.Patients/Utano.Module.Patients.csproj" />
+    <Project Path="src/Modules/Utano.Module.Doctors/Utano.Module.Doctors.csproj" />
+  </Folder>
+  <Folder Name="/src/Shared/">
+    <Project Path="src/Shared/Utano.Module.Core/Utano.Module.Core.csproj" />
+    <Project Path="src/Shared/Utano.Shared.Models/Utano.Shared.Models.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Utano.Integration.Tests/Utano.Integration.Tests.csproj" />
+    <Project Path="tests/Utano.Module.Appointments.Tests/Utano.Module.Appointments.Tests.csproj" />
+    <Project Path="tests/Utano.Module.Billing.Tests/Utano.Module.Billing.Tests.csproj" />
+    <Project Path="tests/Utano.Module.ClinicalNotes.Tests/Utano.Module.ClinicalNotes.Tests.csproj" />
+    <Project Path="tests/Utano.Module.Inventory.Tests/Utano.Module.Inventory.Tests.csproj" />
+    <Project Path="tests/Utano.Module.Patients.Tests/Utano.Module.Patients.Tests.csproj" />
+    <Project Path="tests/Utano.Module.Doctors.Tests/Utano.Module.Doctors.Tests.csproj" />
+  </Folder>
+</Solution>

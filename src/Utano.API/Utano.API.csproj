@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.9" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.9">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Modules\Utano.Module.Appointments\Utano.Module.Appointments.csproj" />
+    <ProjectReference Include="..\Modules\Utano.Module.Billing\Utano.Module.Billing.csproj" />
+    <ProjectReference Include="..\Modules\Utano.Module.ClinicalNotes\Utano.Module.ClinicalNotes.csproj" />
+    <ProjectReference Include="..\Modules\Utano.Module.Doctors\Utano.Module.Doctors.csproj" />
+    <ProjectReference Include="..\Modules\Utano.Module.Inventory\Utano.Module.Inventory.csproj" />
+    <ProjectReference Include="..\Modules\Utano.Module.Patients\Utano.Module.Patients.csproj" />
+    <ProjectReference Include="..\Shared\Utano.Module.Core\Utano.Module.Core.csproj" />
+    <ProjectReference Include="..\Shared\Utano.Shared.Models\Utano.Shared.Models.csproj" />
+  </ItemGroup>
+
+</Project>
