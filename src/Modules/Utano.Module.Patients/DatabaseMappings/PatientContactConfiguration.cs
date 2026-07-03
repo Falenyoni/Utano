@@ -15,6 +15,7 @@ public class PatientContactConfiguration : IEntityTypeConfiguration<PatientConta
         builder.Property(c => c.PatientId).IsRequired();
 
         builder.Property(c => c.Type)
+            .HasConversion<string>()
             .HasMaxLength(50)
             .IsRequired();
 

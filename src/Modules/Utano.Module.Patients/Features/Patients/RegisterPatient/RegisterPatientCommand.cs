@@ -1,4 +1,5 @@
 using MediatR;
+using Utano.Module.Patients.Domain.Enums;
 
 namespace Utano.Module.Patients.Features.Patients.RegisterPatient;
 
@@ -14,14 +15,14 @@ public record RegisterPatientCommand(
 ) : IRequest<RegisterPatientResponse>;
 
 public record RegisterPatientContactRequest(
-    string Type,
+    ContactType Type,
     string PhoneNumber,
     string? Email,
     bool IsPrimary
 );
 
 public record RegisterPatientAddressRequest(
-    string Type,
+    AddressType Type,
     string Street,
     string? Suburb,
     string City,

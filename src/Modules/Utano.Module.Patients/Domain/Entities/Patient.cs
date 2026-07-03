@@ -2,6 +2,7 @@ using Utano.Module.Core.Domain.Aggregate;
 using Utano.Module.Core.Exceptions;
 using Utano.Module.Patients.Domain.Enums;
 using Utano.Module.Patients.Domain.ValueObjects;
+using Utano.Module.Patients.Domain.Entities;
 
 namespace Utano.Module.Patients.Domain.Entities;
 
@@ -59,7 +60,7 @@ public class Patient : AggregateRoot
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
-    public void AddContact(string type, string phoneNumber, string? email, bool isPrimary)
+    public void AddContact(ContactType type, string phoneNumber, string? email, bool isPrimary)
     {
         if (Status == PatientStatus.Inactive)
             throw new UtanoDomainException("Cannot add contact to an inactive patient.");
@@ -72,7 +73,7 @@ public class Patient : AggregateRoot
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
-    public void AddAddress(string type, string street, string city, string country,
+    public void AddAddress(AddressType type, string street, string city, string country,
         string? suburb, bool isPrimary)
     {
         if (Status == PatientStatus.Inactive)

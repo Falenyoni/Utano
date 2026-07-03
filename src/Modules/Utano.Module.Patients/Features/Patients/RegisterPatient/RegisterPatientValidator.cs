@@ -42,10 +42,6 @@ public class RegisterPatientValidator : AbstractValidator<RegisterPatientCommand
                 .NotEmpty().WithMessage("Contact phone number is required.")
                 .MaximumLength(30);
 
-            contact.RuleFor(c => c.Type)
-                .NotEmpty().WithMessage("Contact type is required.")
-                .MaximumLength(50);
-
             contact.RuleFor(c => c.Email)
                 .EmailAddress().WithMessage("Contact email is not valid.")
                 .When(c => c.Email is not null);
@@ -64,10 +60,6 @@ public class RegisterPatientValidator : AbstractValidator<RegisterPatientCommand
             address.RuleFor(a => a.Country)
                 .NotEmpty().WithMessage("Country is required.")
                 .MaximumLength(100);
-
-            address.RuleFor(a => a.Type)
-                .NotEmpty().WithMessage("Address type is required.")
-                .MaximumLength(50);
         });
 
         RuleFor(x => x.Contacts)

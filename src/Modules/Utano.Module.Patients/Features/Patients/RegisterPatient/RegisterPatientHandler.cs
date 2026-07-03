@@ -41,13 +41,12 @@ public class RegisterPatientHandler(
             gender,
             nationalId);
 
-        foreach (var contact in command.Contacts)
-            patient.AddContact(contact.Type, contact.PhoneNumber, contact.Email, contact.IsPrimary);
+        foreach (var c in command.Contacts)
+            patient.AddContact(c.Type, c.PhoneNumber, c.Email, c.IsPrimary);
 
         if (command.Addresses is not null)
-            foreach (var address in command.Addresses)
-                patient.AddAddress(address.Type, address.Street, address.City,
-                    address.Country, address.Suburb, address.IsPrimary);
+            foreach (var a in command.Addresses)
+                patient.AddAddress(a.Type, a.Street, a.City, a.Country, a.Suburb, a.IsPrimary);
 
         await writeRepository.AddAsync(patient, cancellationToken);
 
