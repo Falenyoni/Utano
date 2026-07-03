@@ -1,5 +1,7 @@
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 using System.Net;
 
 namespace Utano.Module.Patients.Features.Patients.RegisterPatient;
@@ -11,8 +13,11 @@ public class RegisterPatientEndpoint(ISender sender) : ControllerBase
     [HttpPost]
     [ProducesResponseType(typeof(RegisterPatientResponse), (int)HttpStatusCode.Created)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+    [EndpointSummary("Register a new patient")]
+    [EndpointDescription("Registers a new patient and returns the patient details.")]
+    [Tags("Patients Module")]
     public async Task<IActionResult> RegisterPatient(
-        RegisterPatientCommand command,
+        [FromBody] RegisterPatientCommand command,
         CancellationToken cancellationToken)
     {
         var response = await sender.Send(command, cancellationToken);

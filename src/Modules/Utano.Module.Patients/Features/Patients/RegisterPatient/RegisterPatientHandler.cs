@@ -25,7 +25,7 @@ public class RegisterPatientHandler(
             throw new UtanoDomainException(validationResult.Errors[0].ErrorMessage);
 
         var existing = await readRepository.GetByNationalIdAsync(
-            command.NationalId, currentUserService.PracticeId, cancellationToken);
+            command.NationalId, cancellationToken);
 
         if (existing is not null)
             throw new UtanoDomainException($"A patient with National ID '{command.NationalId}' is already registered.");

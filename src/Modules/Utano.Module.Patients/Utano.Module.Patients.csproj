@@ -21,8 +21,5 @@
     <Folder Include="Features\Patients\UpdatePatient\" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.9" />
-  </ItemGroup>
 
 </Project>

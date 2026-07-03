@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Utano.Module.Patients.Domain.Entities;
+using Utano.Module.Patients.Domain.ValueObjects;
 
 namespace Utano.Module.Patients.DatabaseMappings;
 
@@ -21,10 +22,11 @@ public class PatientConfiguration : IEntityTypeConfiguration<Patient>
             fn.Property(f => f.MiddleName).HasColumnName("MiddleName").HasMaxLength(100);
         });
 
-        builder.OwnsOne(p => p.NationalId, n =>
-        {
-            n.Property(x => x.Value).HasColumnName("NationalId").HasMaxLength(50).IsRequired();
-        });
+        builder.Property(p => p.NationalId)
+            .HasConversion(v => v.Value, v => NationalId.Create(v))
+            .HasColumnName("NationalId")
+            .HasMaxLength(50)
+            .IsRequired();
 
         builder.Property(p => p.DateOfBirth).IsRequired();
 
@@ -55,6 +57,6 @@ public class PatientConfiguration : IEntityTypeConfiguration<Patient>
 
         builder.HasIndex(p => p.PracticeId);
         builder.HasIndex(p => new { p.PracticeId, p.Status });
-        builder.HasIndex("PracticeId", "NationalId").IsUnique();
+        builder.HasIndex(p => new { p.PracticeId, p.NationalId }).IsUnique();
     }
 }

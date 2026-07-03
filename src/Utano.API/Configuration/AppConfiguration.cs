@@ -13,9 +13,15 @@ public static class AppConfiguration
         builder.Services
             .AddScoped<ICurrentUserService, CurrentUserService>()
             .AddPatientsModule(builder.Configuration);
-        builder.Services.AddControllers();
+        builder.Services.AddControllers()
+            .AddJsonOptions(options =>
+                options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen(options =>
+        {
+            options.SwaggerDoc("v1", new() { Title = "Utano API", Version = "v1" });
+            options.EnableAnnotations();
+        });
 
         return builder;
     }
