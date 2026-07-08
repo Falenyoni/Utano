@@ -298,6 +298,9 @@ ServiceFabricBackup/
 
 # Business Intelligence projects
 *.rdl.data
+
+# Local AI skill definitions
+.claude/skills/
 *.bim.layout
 *.bim_*.settings
 *.rptproj.rsuser

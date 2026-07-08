@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -7,6 +8,7 @@ using System.Net;
 namespace Utano.Module.Patients.Features.Patients.UpdatePatient;
 
 [ApiController]
+[Authorize]
 [Route("api/patients")]
 public class UpdatePatientEndpoint(ISender sender) : ControllerBase
 {

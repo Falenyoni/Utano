@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Modules\Utano.Module.Appointments\Utano.Module.Appointments.csproj" />
+    <ProjectReference Include="..\Modules\Utano.Module.Identity\Utano.Module.Identity.csproj" />
     <ProjectReference Include="..\Modules\Utano.Module.Billing\Utano.Module.Billing.csproj" />
     <ProjectReference Include="..\Modules\Utano.Module.ClinicalNotes\Utano.Module.ClinicalNotes.csproj" />
     <ProjectReference Include="..\Modules\Utano.Module.Doctors\Utano.Module.Doctors.csproj" />

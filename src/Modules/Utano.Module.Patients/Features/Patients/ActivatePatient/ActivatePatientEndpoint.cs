@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -8,6 +9,7 @@ namespace Utano.Module.Patients.Features.Patients.ActivatePatient;
 
 [ApiController]
 [Route("api/patients")]
+[Authorize]
 public class ActivatePatientEndpoint(ISender sender) : ControllerBase
 {
     [HttpPut("{id:guid}/activate")]

@@ -10,10 +10,10 @@ public class PatientAddress
     public Guid Id { get; private set; }
     public Guid PatientId { get; private set; }
     public AddressType Type { get; private set; }
-    public string Street { get; private set; }
+    public string Street { get; private set; } = null!;
     public string? Suburb { get; private set; }
-    public string City { get; private set; }
-    public string Country { get; private set; }
+    public string City { get; private set; } = null!;
+    public string Country { get; private set; } = null!;
     public bool IsPrimary { get; private set; }
 
     internal static PatientAddress Create(Guid patientId, AddressType type, string street,

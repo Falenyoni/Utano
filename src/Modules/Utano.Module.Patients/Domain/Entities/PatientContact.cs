@@ -10,7 +10,7 @@ public class PatientContact
     public Guid Id { get; private set; }
     public Guid PatientId { get; private set; }
     public ContactType Type { get; private set; }
-    public string PhoneNumber { get; private set; }
+    public string PhoneNumber { get; private set; } = null!;
     public string? Email { get; private set; }
     public bool IsPrimary { get; private set; }
 

@@ -1,13 +1,25 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Utano.Module.Core.Services;
 
 namespace Utano.API.Infrastructure.Services;
 
-public class CurrentUserService : ICurrentUserService
+public class CurrentUserService(IHttpContextAccessor httpContextAccessor) : ICurrentUserService
 {
-    // TODO: replace with real JWT claim extraction once auth is wired up
-    public Guid UserId { get; } = Guid.Parse("00000000-0000-0000-0000-000000000001");
-    public string Email { get; } = "admin@utano.health";
-    public string FullName { get; } = "System Admin";
-    public string Role { get; } = "Admin";
-    public Guid PracticeId { get; } = Guid.Parse("00000000-0000-0000-0000-000000000002");
+    private ClaimsPrincipal? User => httpContextAccessor.HttpContext?.User;
+
+    public Guid UserId =>
+        Guid.Parse(User?.FindFirstValue(JwtRegisteredClaimNames.Sub) ?? Guid.Empty.ToString());
+
+    public string Email =>
+        User?.FindFirstValue(JwtRegisteredClaimNames.Email) ?? string.Empty;
+
+    public string FullName =>
+        User?.FindFirstValue(ClaimTypes.Name) ?? string.Empty;
+
+    public string Role =>
+        User?.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
+
+    public Guid PracticeId =>
+        Guid.Parse(User?.FindFirstValue("PracticeId") ?? Guid.Empty.ToString());
 }

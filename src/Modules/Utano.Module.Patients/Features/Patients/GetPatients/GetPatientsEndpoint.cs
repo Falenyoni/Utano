@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -10,6 +11,7 @@ namespace Utano.Module.Patients.Features.Patients.GetPatients;
 
 [ApiController]
 [Route("api/patients")]
+[Authorize]
 public class GetPatientsEndpoint(ISender sender) : ControllerBase
 {
     [HttpGet]

@@ -7,6 +7,7 @@
     <Project Path="src/Modules/Utano.Module.Billing/Utano.Module.Billing.csproj" />
     <Project Path="src/Modules/Utano.Module.ClinicalNotes/Utano.Module.ClinicalNotes.csproj" />
     <Project Path="src/Modules/Utano.Module.Inventory/Utano.Module.Inventory.csproj" />
+    <Project Path="src/Modules/Utano.Module.Identity/Utano.Module.Identity.csproj" />
     <Project Path="src/Modules/Utano.Module.Patients/Utano.Module.Patients.csproj" />
     <Project Path="src/Modules/Utano.Module.Doctors/Utano.Module.Doctors.csproj" />
   </Folder>
