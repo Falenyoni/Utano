@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.OpenApi;
 using System.Globalization;
@@ -59,6 +60,12 @@ public static class AppConfiguration
 
     public static WebApplication ConfigureApplication(this WebApplication app)
     {
+        app.UseForwardedHeaders(new ForwardedHeadersOptions
+        {
+            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+            KnownNetworks = { },
+            KnownProxies = { }
+        });
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
