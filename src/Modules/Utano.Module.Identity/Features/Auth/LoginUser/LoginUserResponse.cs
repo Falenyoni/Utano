@@ -6,6 +6,7 @@ public record LoginUserResponse(
     string Email,
     string Role,
     Guid PracticeId,
+    string PracticeName,
     string AccessToken,
     string RefreshToken,
     DateTimeOffset ExpiresAt

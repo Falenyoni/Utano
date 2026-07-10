@@ -43,6 +43,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasForeignKey(r => r.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasIndex(u => new { u.PracticeId, u.Email }).IsUnique();
+        builder.HasIndex(u => u.Email).IsUnique();
     }
 }

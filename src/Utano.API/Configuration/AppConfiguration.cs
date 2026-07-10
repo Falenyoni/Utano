@@ -2,7 +2,9 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.OpenApi;
 using System.Globalization;
+using Utano.API.Filters;
 using Utano.API.Infrastructure.Services;
+using Utano.Module.Appointments.Configuration;
 using Utano.Module.Core.Services;
 using Utano.Module.Identity.Configuration;
 using Utano.Module.Patients.Configuration;
@@ -34,6 +36,7 @@ public static class AppConfiguration
 
         builder.Services.AddIdentityModule(builder.Configuration);
         builder.Services.AddPatientsModule(builder.Configuration);
+        builder.Services.AddAppointmentsModule(builder.Configuration);
 
         builder.Services.AddControllers()
             .AddJsonOptions(options =>
@@ -84,11 +87,13 @@ public static class AppConfiguration
         });
 
         app.UseCors("UtanoPolicy");
+        app.UseMiddleware<ApiKeyMiddleware>();
         app.UseRouting();
         app.ConfigureIdentityModule();
         app.UseAuthorization();
         app.MapControllers();
         app.ConfigurePatientsModule();
+        app.ConfigureAppointmentsModule();
 
         return app;
     }

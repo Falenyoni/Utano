@@ -8,6 +8,5 @@ public class LoginUserValidator : AbstractValidator<LoginUserCommand>
     {
         RuleFor(x => x.Email).NotEmpty().EmailAddress();
         RuleFor(x => x.Password).NotEmpty();
-        RuleFor(x => x.PracticeId).NotEmpty();
     }
 }

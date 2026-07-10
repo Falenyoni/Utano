@@ -7,5 +7,7 @@ public record RegisterPatientResponse(
     DateOnly DateOfBirth,
     string Gender,
     string Status,
+    Guid? MedicalAidId,
+    string? MedicalAidNumber,
     DateTimeOffset CreatedAt
 );

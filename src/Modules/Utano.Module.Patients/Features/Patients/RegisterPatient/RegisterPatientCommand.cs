@@ -11,7 +11,12 @@ public record RegisterPatientCommand(
     string Gender,
     string NationalId,
     List<RegisterPatientContactRequest> Contacts,
-    List<RegisterPatientAddressRequest>? Addresses
+    List<RegisterPatientAddressRequest>? Addresses,
+    Guid? MedicalAidId,
+    string? MedicalAidNumber,
+    string? BloodGroup,
+    string? Allergies,
+    string? ChronicConditions
 ) : IRequest<RegisterPatientResponse>;
 
 public record RegisterPatientContactRequest(

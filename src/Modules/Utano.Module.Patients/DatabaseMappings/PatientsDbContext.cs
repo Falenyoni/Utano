@@ -18,6 +18,7 @@ public class PatientsDbContext : DbContext
     public DbSet<Patient> Patients { get; set; }
     public DbSet<PatientContact> PatientContacts { get; set; }
     public DbSet<PatientAddress> PatientAddresses { get; set; }
+    public DbSet<MedicalAid> MedicalAids { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -25,6 +26,9 @@ public class PatientsDbContext : DbContext
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<Patient>()
-        .HasQueryFilter(p => p.PracticeId == _currentUserService.PracticeId);
+            .HasQueryFilter(p => p.PracticeId == _currentUserService.PracticeId);
+
+        modelBuilder.Entity<MedicalAid>()
+            .HasQueryFilter(m => m.PracticeId == _currentUserService.PracticeId);
     }
 }

@@ -30,7 +30,7 @@ public class RegisterPatientHandler(
         if (existing is not null)
             throw new UtanoDomainException($"A patient with National ID '{command.NationalId}' is already registered.");
 
-        var fullName = FullName.Create(command.FirstName, command.LastName, command.MiddleName);
+        var fullName = FullName.Create(command.FirstName, command.LastName, command.MiddleName ?? "");
         var nationalId = NationalId.Create(command.NationalId);
         var gender = Enum.Parse<Gender>(command.Gender, ignoreCase: true);
 
@@ -48,6 +48,16 @@ public class RegisterPatientHandler(
             foreach (var a in command.Addresses)
                 patient.AddAddress(a.Type, a.Street, a.City, a.Country, a.Suburb, a.IsPrimary);
 
+        if (command.MedicalAidId.HasValue || !string.IsNullOrWhiteSpace(command.MedicalAidNumber))
+            patient.UpdateMedicalAid(command.MedicalAidId, command.MedicalAidNumber);
+
+        if (!string.IsNullOrWhiteSpace(command.BloodGroup) || !string.IsNullOrWhiteSpace(command.Allergies) || !string.IsNullOrWhiteSpace(command.ChronicConditions))
+        {
+            var bloodGroup = string.IsNullOrWhiteSpace(command.BloodGroup) ? (Domain.Enums.BloodGroup?)null
+                : Enum.Parse<Domain.Enums.BloodGroup>(command.BloodGroup, ignoreCase: true);
+            patient.UpdateMedicalHistory(bloodGroup, command.Allergies, command.ChronicConditions);
+        }
+
         await writeRepository.AddAsync(patient, cancellationToken);
 
         return new RegisterPatientResponse(
@@ -57,6 +67,8 @@ public class RegisterPatientHandler(
             patient.DateOfBirth,
             patient.Gender.ToString(),
             patient.Status.ToString(),
+            patient.MedicalAidId,
+            patient.MedicalAidNumber,
             patient.CreatedAt);
     }
 }

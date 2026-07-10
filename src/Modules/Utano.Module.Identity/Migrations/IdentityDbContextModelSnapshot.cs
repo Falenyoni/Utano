@@ -147,7 +147,7 @@ namespace Utano.Module.Identity.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PracticeId", "Email")
+                    b.HasIndex("Email")
                         .IsUnique();
 
                     b.ToTable("Users", "identity");

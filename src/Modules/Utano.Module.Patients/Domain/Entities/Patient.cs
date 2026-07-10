@@ -19,6 +19,11 @@ public class Patient : AggregateRoot
     public NationalId NationalId { get; private set; }
     public PatientStatus Status { get; private set; }
     public string? Notes { get; private set; }
+    public BloodGroup? BloodGroup { get; private set; }
+    public string? Allergies { get; private set; }
+    public string? ChronicConditions { get; private set; }
+    public Guid? MedicalAidId { get; private set; }
+    public string? MedicalAidNumber { get; private set; }
 
     public IReadOnlyCollection<PatientContact> Contacts => _contacts.AsReadOnly();
     public IReadOnlyCollection<PatientAddress> Addresses => _addresses.AsReadOnly();
@@ -57,6 +62,24 @@ public class Patient : AggregateRoot
 
         FullName = fullName;
         Notes = notes;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void UpdateMedicalAid(Guid? medicalAidId, string? number)
+    {
+        if (Status == PatientStatus.Inactive)
+            throw new UtanoDomainException("Cannot update an inactive patient.");
+
+        MedicalAidId = medicalAidId;
+        MedicalAidNumber = string.IsNullOrWhiteSpace(number) ? null : number.Trim();
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void UpdateMedicalHistory(BloodGroup? bloodGroup, string? allergies, string? chronicConditions)
+    {
+        BloodGroup = bloodGroup;
+        Allergies = allergies;
+        ChronicConditions = chronicConditions;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 

@@ -11,6 +11,7 @@ namespace Utano.Module.Identity.Features.Auth.LoginUser;
 public class LoginUserHandler(
     IUserReadRepository readRepository,
     IUserWriteRepository writeRepository,
+    IPracticeRepository practiceRepository,
     IPasswordService passwordService,
     ITokenService tokenService,
     IOptions<JwtSettings> jwtSettings,
@@ -24,13 +25,15 @@ public class LoginUserHandler(
         if (!validation.IsValid)
             throw new UtanoDomainException(validation.Errors[0].ErrorMessage);
 
-        var user = await readRepository.GetByEmailAsync(command.Email, command.PracticeId, cancellationToken);
+        var user = await readRepository.GetByEmailAsync(command.Email, cancellationToken);
 
         if (user is null || !passwordService.Verify(command.Password, user.PasswordHash))
             throw new UtanoDomainException("Invalid email or password.");
 
         if (user.Status != UserStatus.Active)
             throw new UtanoDomainException("Your account is not active. Contact your administrator.");
+
+        var practice = await practiceRepository.GetByIdAsync(user.PracticeId, cancellationToken);
 
         var accessToken = tokenService.GenerateJwtToken(user);
         var refreshTokenValue = tokenService.GenerateRefreshToken();
@@ -43,6 +46,7 @@ public class LoginUserHandler(
             user.Email.Value,
             user.Role.ToString(),
             user.PracticeId,
+            practice?.Name ?? string.Empty,
             accessToken,
             refreshTokenValue,
             DateTimeOffset.UtcNow.AddMinutes(jwtSettings.Value.ExpiryMinutes));
