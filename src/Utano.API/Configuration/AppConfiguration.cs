@@ -15,6 +15,22 @@ public static class AppConfiguration
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
+        var allowedOrigins = builder.Configuration
+            .GetSection("Cors:AllowedOrigins")
+            .Get<string[]>() ?? [];
+
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("UtanoPolicy", policy =>
+            {
+                policy
+                    .WithOrigins(allowedOrigins)
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+            });
+        });
+
         builder.Services.AddIdentityModule(builder.Configuration);
         builder.Services.AddPatientsModule(builder.Configuration);
 
@@ -60,6 +76,7 @@ public static class AppConfiguration
             RequestCultureProviders = [new AcceptLanguageHeaderRequestCultureProvider()]
         });
 
+        app.UseCors("UtanoPolicy");
         app.UseRouting();
         app.ConfigureIdentityModule();
         app.UseAuthorization();
