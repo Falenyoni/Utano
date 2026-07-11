@@ -7,5 +7,6 @@ public enum AppointmentType
     Procedure,
     Vaccination,
     LabCollection,
+    WalkIn,
     Other
 }

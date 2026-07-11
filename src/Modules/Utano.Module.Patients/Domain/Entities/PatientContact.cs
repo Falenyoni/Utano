@@ -32,4 +32,13 @@ public class PatientContact
     }
 
     internal void SetPrimary(bool isPrimary) => IsPrimary = isPrimary;
+
+    internal void Update(ContactType type, string phoneNumber, string? email)
+    {
+        if (string.IsNullOrWhiteSpace(phoneNumber))
+            throw new UtanoDomainException("Phone number is required.");
+        Type = type;
+        PhoneNumber = phoneNumber.Trim();
+        Email = email?.Trim();
+    }
 }

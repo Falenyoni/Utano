@@ -69,6 +69,26 @@ public class User : AggregateRoot
         return true;
     }
 
+    public void Update(string firstName, string lastName, UserRole role)
+    {
+        if (string.IsNullOrWhiteSpace(firstName))
+            throw new UtanoDomainException("First name is required.");
+        if (string.IsNullOrWhiteSpace(lastName))
+            throw new UtanoDomainException("Last name is required.");
+        FirstName = firstName.Trim();
+        LastName = lastName.Trim();
+        Role = role;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void Activate()
+    {
+        if (Status == UserStatus.Active)
+            throw new UtanoDomainException("User is already active.");
+        Status = UserStatus.Active;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
     public void Deactivate()
     {
         if (Status == UserStatus.Inactive)

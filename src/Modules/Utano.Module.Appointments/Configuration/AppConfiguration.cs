@@ -6,6 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Utano.Module.Appointments.DatabaseMappings;
 using Utano.Module.Appointments.Domain.Interfaces;
 using Utano.Module.Appointments.Infrastructure.Repositories;
+using Utano.Module.Appointments.Infrastructure.Services;
+using Utano.Module.Core.Services;
 
 namespace Utano.Module.Appointments.Configuration;
 
@@ -25,6 +27,7 @@ public static class AppConfiguration
 
         services.AddScoped<IAppointmentReadRepository, AppointmentReadRepository>();
         services.AddScoped<IAppointmentWriteRepository, AppointmentWriteRepository>();
+        services.AddScoped<IAppointmentLinker, AppointmentLinker>();
 
         return services;
     }

@@ -38,11 +38,21 @@ public class PatientReadRepository(PatientsDbContext context) : IPatientReadRepo
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
-            var term = searchTerm.ToLower();
-            query = query.Where(p =>
-                EF.Functions.Like(p.FullName.FirstName.ToLower(), $"%{term}%") ||
-                EF.Functions.Like(p.FullName.LastName.ToLower(), $"%{term}%") ||
-                EF.Functions.Like(EF.Property<string>(p, "NationalId").ToLower(), $"%{term}%"));
+            var lower = $"%{searchTerm.ToLower()}%";
+            // EF Core cannot translate any string function (ILike, Contains, ToLower)
+            // when the argument navigates through an owned-type property (FullName.FirstName).
+            // FromSql still applies the global PracticeId query filter automatically.
+            var matchingIds = await context.Patients
+                .FromSql($"""
+                    SELECT * FROM "Patients"
+                    WHERE LOWER("FirstName") LIKE {lower}
+                       OR LOWER("LastName")  LIKE {lower}
+                       OR LOWER("NationalId") LIKE {lower}
+                    """)
+                .Select(p => p.Id)
+                .ToListAsync(cancellationToken);
+
+            query = query.Where(p => matchingIds.Contains(p.Id));
         }
 
         var totalCount = await query.CountAsync(cancellationToken);

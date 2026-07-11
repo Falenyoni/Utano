@@ -14,11 +14,13 @@ public class GetDoctorsHandler(
         GetDoctorsQuery query, CancellationToken cancellationToken)
     {
         var doctors = await readRepository.GetByRoleAsync(
-            currentUserService.PracticeId,
-            UserRole.Doctor,
-            cancellationToken);
+            currentUserService.PracticeId, UserRole.Doctor, cancellationToken);
+        var nurses = await readRepository.GetByRoleAsync(
+            currentUserService.PracticeId, UserRole.Nurse, cancellationToken);
 
-        return doctors.Select(d => new DoctorResponse(d.Id, d.FullName, d.Email.Value))
+        return doctors.Concat(nurses)
+            .OrderBy(u => u.FullName)
+            .Select(d => new DoctorResponse(d.Id, d.FullName, d.Email.Value))
             .ToList()
             .AsReadOnly();
     }

@@ -11,5 +11,6 @@ public record AppointmentSummaryResponse(
     TimeOnly EndTime,
     string Type,
     string Status,
-    string? Notes
+    string? Notes,
+    DateTimeOffset CreatedAt
 );

@@ -32,7 +32,8 @@ public class GetAppointmentsHandler(IAppointmentReadRepository readRepository)
                 a.EndTime,
                 a.Type.ToString(),
                 a.Status.ToString(),
-                a.Notes)),
+                a.Notes,
+                a.CreatedAt)),
             TotalCount = paged.TotalCount,
             Page = paged.Page,
             PageSize = paged.PageSize

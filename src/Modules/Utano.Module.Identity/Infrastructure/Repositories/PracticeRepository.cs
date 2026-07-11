@@ -19,4 +19,10 @@ public class PracticeRepository(IdentityDbContext context) : IPracticeRepository
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
     }
+
+    public async Task UpdateAsync(Practice practice, CancellationToken cancellationToken = default)
+    {
+        context.Practices.Update(practice);
+        await context.SaveChangesAsync(cancellationToken);
+    }
 }

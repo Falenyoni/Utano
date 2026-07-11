@@ -42,4 +42,16 @@ public class PatientAddress
     }
 
     internal void SetPrimary(bool isPrimary) => IsPrimary = isPrimary;
+
+    internal void Update(AddressType type, string street, string city, string country, string? suburb)
+    {
+        if (string.IsNullOrWhiteSpace(street)) throw new UtanoDomainException("Street is required.");
+        if (string.IsNullOrWhiteSpace(city)) throw new UtanoDomainException("City is required.");
+        if (string.IsNullOrWhiteSpace(country)) throw new UtanoDomainException("Country is required.");
+        Type = type;
+        Street = street.Trim();
+        City = city.Trim();
+        Country = country.Trim();
+        Suburb = suburb?.Trim();
+    }
 }

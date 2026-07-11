@@ -89,6 +89,14 @@ public class Appointment : AggregateRoot
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
+    public void StartVisit()
+    {
+        if (Status is not (AppointmentStatus.Scheduled or AppointmentStatus.Confirmed))
+            throw new UtanoDomainException("Only scheduled or confirmed appointments can be started.");
+        Status = AppointmentStatus.InProgress;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
     public void Reschedule(DateOnly newDate, TimeOnly newStartTime, TimeOnly newEndTime)
     {
         if (Status is AppointmentStatus.Completed or AppointmentStatus.Cancelled)

@@ -13,6 +13,19 @@ public class Practice : AggregateRoot
     public string PhysicalAddress { get; private set; } = null!;
     public bool IsActive { get; private set; }
 
+    public void Update(string name, string contactEmail, string contactPhone, string physicalAddress)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new UtanoDomainException("Practice name is required.");
+        if (string.IsNullOrWhiteSpace(contactEmail))
+            throw new UtanoDomainException("Contact email is required.");
+        Name = name.Trim();
+        ContactEmail = contactEmail.Trim().ToLower();
+        ContactPhone = contactPhone.Trim();
+        PhysicalAddress = physicalAddress.Trim();
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
     public static Practice Create(string name, string contactEmail,
         string contactPhone, string physicalAddress)
     {

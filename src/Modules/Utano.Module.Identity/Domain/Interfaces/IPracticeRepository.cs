@@ -6,4 +6,5 @@ public interface IPracticeRepository
 {
     Task AddAsync(Practice practice, CancellationToken cancellationToken = default);
     Task<Practice?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task UpdateAsync(Practice practice, CancellationToken cancellationToken = default);
 }
