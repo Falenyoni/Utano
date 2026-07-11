@@ -14,6 +14,8 @@ public class Visit : AggregateRoot
     public string DoctorName { get; private set; } = null!;
     public DateOnly VisitDate { get; private set; }
     public Guid? AppointmentId { get; private set; }
+    public string? PatientGender { get; private set; }
+    public DateOnly? PatientDateOfBirth { get; private set; }
 
     // Vitals
     public int? BloodPressureSystolic { get; private set; }
@@ -43,7 +45,9 @@ public class Visit : AggregateRoot
         string doctorName,
         DateOnly visitDate,
         Guid? appointmentId = null,
-        string? department = null)
+        string? department = null,
+        string? patientGender = null,
+        DateOnly? patientDateOfBirth = null)
     {
         if (string.IsNullOrWhiteSpace(patientName))
             throw new UtanoDomainException("Patient name is required.");
@@ -61,6 +65,8 @@ public class Visit : AggregateRoot
             VisitDate = visitDate,
             AppointmentId = appointmentId,
             Department = department?.Trim(),
+            PatientGender = patientGender,
+            PatientDateOfBirth = patientDateOfBirth,
             Status = VisitStatus.InProgress,
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow
@@ -96,6 +102,31 @@ public class Visit : AggregateRoot
         Prescription = prescription;
         Notes = notes;
         Department = department?.Trim();
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void Triage(
+        int? bpSystolic, int? bpDiastolic,
+        decimal? weightKg, decimal? heightCm,
+        decimal? temperatureCelsius, int? pulseRate,
+        decimal? oxygenSaturation,
+        string? chiefComplaint)
+    {
+        if (Status == VisitStatus.Completed)
+            throw new UtanoDomainException("Cannot triage a completed visit.");
+
+        BloodPressureSystolic = bpSystolic;
+        BloodPressureDiastolic = bpDiastolic;
+        WeightKg = weightKg;
+        HeightCm = heightCm;
+        TemperatureCelsius = temperatureCelsius;
+        PulseRate = pulseRate;
+        OxygenSaturation = oxygenSaturation;
+        ChiefComplaint = chiefComplaint;
+
+        if (Status == VisitStatus.InProgress)
+            Status = VisitStatus.Triaged;
+
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 

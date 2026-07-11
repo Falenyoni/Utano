@@ -24,11 +24,15 @@ public class GetInvoicesEndpoint(ISender sender) : ControllerBase
         [FromQuery] string? status,
         [FromQuery] string? dateFrom,
         [FromQuery] string? dateTo,
+        [FromQuery] bool? hasMedicalAid,
+        [FromQuery] string? medAidClaimStatus,
+        [FromQuery] bool? outstanding,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        var result = await sender.Send(new GetInvoicesQuery(patientName, status, dateFrom, dateTo, page, pageSize), ct);
+        var result = await sender.Send(
+            new GetInvoicesQuery(patientName, status, dateFrom, dateTo, hasMedicalAid, medAidClaimStatus, outstanding, page, pageSize), ct);
         return Ok(result);
     }
 }
@@ -36,13 +40,17 @@ public class GetInvoicesEndpoint(ISender sender) : ControllerBase
 public record GetInvoicesQuery(
     string? PatientName, string? Status,
     string? DateFrom, string? DateTo,
+    bool? HasMedicalAid, string? MedAidClaimStatus,
+    bool? Outstanding,
     int Page, int PageSize) : IRequest<PagedResult<InvoiceSummary>>;
 
 public record InvoiceSummary(
     Guid Id, string InvoiceNumber, string PatientName, string? DoctorName,
     string Status, DateOnly InvoiceDate, DateOnly DueDate, string Currency,
     decimal TotalAmount, decimal AmountPaid, decimal BalanceDue,
-    Guid? VisitId, DateTimeOffset CreatedAt);
+    Guid? VisitId, DateTimeOffset CreatedAt,
+    Guid? MedicalAidId, string? MedicalAidName,
+    decimal MedAidClaimAmount, string MedAidClaimStatus);
 
 public class GetInvoicesHandler(BillingDbContext db) : IRequestHandler<GetInvoicesQuery, PagedResult<InvoiceSummary>>
 {
@@ -62,14 +70,29 @@ public class GetInvoicesHandler(BillingDbContext db) : IRequestHandler<GetInvoic
         if (DateOnly.TryParse(q.DateTo, out var to))
             query = query.Where(i => i.InvoiceDate <= to);
 
+        if (q.HasMedicalAid == true)
+            query = query.Where(i => i.MedicalAidId != null);
+
+        if (q.Outstanding == true)
+            query = query.Where(i =>
+                (i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid) &&
+                i.AmountPaid < i.TotalAmount);
+
+        if (Enum.TryParse<MedAidClaimStatus>(q.MedAidClaimStatus, true, out var claimStatus))
+            query = query.Where(i => i.MedAidClaimStatus == claimStatus);
+
         var total = await query.CountAsync(ct);
         var items = await query
             .OrderByDescending(i => i.CreatedAt)
             .Skip((q.Page - 1) * q.PageSize)
             .Take(q.PageSize)
-            .Select(i => new InvoiceSummary(i.Id, i.InvoiceNumber, i.PatientName, i.DoctorName,
+            .Select(i => new InvoiceSummary(
+                i.Id, i.InvoiceNumber, i.PatientName, i.DoctorName,
                 i.Status.ToString(), i.InvoiceDate, i.DueDate, i.Currency,
-                i.TotalAmount, i.AmountPaid, i.TotalAmount - i.AmountPaid, i.VisitId, i.CreatedAt))
+                i.TotalAmount, i.AmountPaid, i.TotalAmount - i.AmountPaid,
+                i.VisitId, i.CreatedAt,
+                i.MedicalAidId, i.MedicalAidName,
+                i.MedAidClaimAmount, i.MedAidClaimStatus.ToString()))
             .ToListAsync(ct);
 
         return new PagedResult<InvoiceSummary> { Data = items, TotalCount = total, Page = q.Page, PageSize = q.PageSize };

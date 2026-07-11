@@ -10,6 +10,7 @@ public class ClinicalNotesDbContext(
 {
     public DbSet<Visit> Visits { get; set; }
     public DbSet<Prescription> Prescriptions { get; set; }
+    public DbSet<AuditLog> AuditLogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

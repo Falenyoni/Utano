@@ -9,5 +9,7 @@ public record OpenVisitCommand(
     string DoctorName,
     DateOnly VisitDate,
     Guid? AppointmentId = null,
-    string? Department = null
+    string? Department = null,
+    string? PatientGender = null,
+    DateOnly? PatientDateOfBirth = null
 ) : IRequest<OpenVisitResponse>;

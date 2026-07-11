@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Utano.Module.ClinicalNotes.DatabaseMappings;
@@ -11,9 +12,11 @@ using Utano.Module.ClinicalNotes.DatabaseMappings;
 namespace Utano.Module.ClinicalNotes.Migrations
 {
     [DbContext(typeof(ClinicalNotesDbContext))]
-    partial class ClinicalNotesDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260711151623_AddDemographicsToVisit")]
+    partial class AddDemographicsToVisit
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,54 +25,6 @@ namespace Utano.Module.ClinicalNotes.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("Utano.Module.ClinicalNotes.Domain.Entities.AuditLog", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Action")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<string>("EntityId")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("EntityType")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<Guid>("PracticeId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("Timestamp")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("UserName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PracticeId", "Timestamp");
-
-                    b.HasIndex("PracticeId", "EntityType", "EntityId");
-
-                    b.ToTable("AuditLogs", "clinical");
-                });
 
             modelBuilder.Entity("Utano.Module.ClinicalNotes.Domain.Entities.Prescription", b =>
                 {

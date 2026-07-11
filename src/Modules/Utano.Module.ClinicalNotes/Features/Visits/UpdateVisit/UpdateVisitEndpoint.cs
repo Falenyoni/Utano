@@ -15,7 +15,7 @@ public class UpdateVisitEndpoint(ISender sender) : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-    [EndpointSummary("Update vitals and clinical notes")]
+    [EndpointSummary("Update clinical notes (use PUT /triage for vitals)")]
     [Tags("Clinical Notes Module")]
     public async Task<IActionResult> UpdateVisit(Guid id, [FromBody] UpdateVisitCommand command, CancellationToken cancellationToken)
     {

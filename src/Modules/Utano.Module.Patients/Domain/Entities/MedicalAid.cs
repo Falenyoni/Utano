@@ -39,6 +39,18 @@ public class MedicalAid
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
+    public void Update(string name, string code)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new UtanoDomainException("Medical aid name is required.");
+        if (string.IsNullOrWhiteSpace(code))
+            throw new UtanoDomainException("Medical aid code is required.");
+
+        Name = name.Trim();
+        Code = code.Trim().ToUpperInvariant();
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
     public void Deactivate()
     {
         IsActive = false;

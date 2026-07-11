@@ -15,11 +15,6 @@ public class UpdateVisitHandler(IVisitReadRepository readRepository, IVisitWrite
         if (visit.Status == Domain.Enums.VisitStatus.Completed)
             throw new UtanoDomainException("Cannot update a completed visit.");
 
-        visit.UpdateVitals(
-            command.BloodPressureSystolic, command.BloodPressureDiastolic,
-            command.WeightKg, command.HeightCm,
-            command.TemperatureCelsius, command.PulseRate, command.OxygenSaturation);
-
         visit.UpdateClinicalNotes(
             command.ChiefComplaint, command.Symptoms,
             command.Diagnosis, command.Treatment,
