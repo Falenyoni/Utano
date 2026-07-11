@@ -11,6 +11,8 @@ public class ClinicalNotesDbContext(
     public DbSet<Visit> Visits { get; set; }
     public DbSet<Prescription> Prescriptions { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
+    public DbSet<VisitProcedure> VisitProcedures { get; set; }
+    public DbSet<VisitDiagnosis> VisitDiagnoses { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -23,5 +25,11 @@ public class ClinicalNotesDbContext(
 
         modelBuilder.Entity<Prescription>()
             .HasQueryFilter(p => p.PracticeId == currentUserService.PracticeId);
+
+        modelBuilder.Entity<VisitProcedure>()
+            .HasQueryFilter(p => p.PracticeId == currentUserService.PracticeId);
+
+        modelBuilder.Entity<VisitDiagnosis>()
+            .HasQueryFilter(d => d.PracticeId == currentUserService.PracticeId);
     }
 }

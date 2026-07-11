@@ -12,6 +12,7 @@ public class BillingDbContext(DbContextOptions<BillingDbContext> options, ICurre
     public DbSet<Payment> Payments { get; set; }
     public DbSet<PaymentPlan> PaymentPlans { get; set; }
     public DbSet<PaymentPlanInstallment> PaymentPlanInstallments { get; set; }
+    public DbSet<ServiceItem> ServiceItems { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -26,5 +27,9 @@ public class BillingDbContext(DbContextOptions<BillingDbContext> options, ICurre
 
         modelBuilder.Entity<PaymentPlan>()
             .HasQueryFilter(pp => pp.PracticeId == currentUser.PracticeId);
+
+        // Global items (PracticeId = null) are visible to all practices
+        modelBuilder.Entity<ServiceItem>()
+            .HasQueryFilter(s => s.PracticeId == null || s.PracticeId == currentUser.PracticeId);
     }
 }

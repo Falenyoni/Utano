@@ -15,9 +15,11 @@ public class InvoiceLineItem
     public decimal DiscountPercent { get; private set; }
     public decimal Amount { get; private set; }
     public Guid? StockItemId { get; private set; }
+    public Guid? ServiceItemId { get; private set; }
 
     internal static InvoiceLineItem Create(Guid invoiceId, LineItemType type, string description,
-        decimal quantity, decimal unitPrice, decimal discountPercent, Guid? stockItemId)
+        decimal quantity, decimal unitPrice, decimal discountPercent, Guid? stockItemId,
+        Guid? serviceItemId = null)
     {
         var amount = quantity * unitPrice * (1 - discountPercent / 100m);
         return new InvoiceLineItem
@@ -30,7 +32,8 @@ public class InvoiceLineItem
             UnitPrice = unitPrice,
             DiscountPercent = discountPercent,
             Amount = Math.Round(amount, 2),
-            StockItemId = stockItemId
+            StockItemId = stockItemId,
+            ServiceItemId = serviceItemId
         };
     }
 }

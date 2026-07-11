@@ -31,26 +31,25 @@ public class PrescriptionEndpoints(ISender sender) : ControllerBase
     [HttpPost]
     [ProducesResponseType(typeof(PrescriptionRow), (int)HttpStatusCode.Created)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    [EndpointSummary("Add a prescription to a visit")]
+    [EndpointSummary("Add a prescription to a visit — doctor selects from inventory, dispensary fulfils later")]
     [Tags("ClinicalNotes Module")]
     public async Task<IActionResult> Add(Guid visitId, [FromBody] AddPrescriptionBody body, CancellationToken ct)
     {
-        var result = await sender.Send(new AddPrescriptionCommand(visitId, body.Description,
-            body.Quantity, body.DosageInstructions, body.DispensingType, body.StockItemId,
-            body.StockItemName, body.UnitPrice), ct);
+        var result = await sender.Send(new AddPrescriptionCommand(visitId, body.StockItemId, body.Quantity, body.DosageInstructions), ct);
         if (result is null) return NotFound();
         return CreatedAtAction(nameof(GetAll), new { visitId }, result);
     }
 
     [HttpPut("{prescriptionId:guid}/dispense")]
-    [ProducesResponseType((int)HttpStatusCode.NoContent)]
+    [ProducesResponseType(typeof(DispenseOutcome), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    [EndpointSummary("Dispense a prescription (reduces stock and adds billing line item if BillAndDispense)")]
+    [EndpointSummary("Dispense a prescription. Pass QuantityOverride to partially fulfil; omit to auto-compute from stock.")]
     [Tags("ClinicalNotes Module")]
-    public async Task<IActionResult> Dispense(Guid visitId, Guid prescriptionId, CancellationToken ct)
+    public async Task<IActionResult> Dispense(Guid visitId, Guid prescriptionId, [FromBody] DispenseBody? body, CancellationToken ct)
     {
-        var ok = await sender.Send(new DispensePrescriptionCommand(visitId, prescriptionId), ct);
-        return ok ? NoContent() : NotFound();
+        var result = await sender.Send(new DispensePrescriptionCommand(visitId, prescriptionId, body?.QuantityOverride), ct);
+        if (result is null) return NotFound();
+        return Ok(result);
     }
 
     [HttpDelete("{prescriptionId:guid}")]
@@ -65,26 +64,28 @@ public class PrescriptionEndpoints(ISender sender) : ControllerBase
     }
 }
 
+public record DispenseBody(decimal? QuantityOverride = null);
+
 public record AddPrescriptionBody(
-    string Description,
+    Guid StockItemId,
     decimal Quantity,
-    string DispensingType,
-    Guid? StockItemId = null,
-    string? StockItemName = null,
-    string? DosageInstructions = null,
-    decimal? UnitPrice = null);
+    string? DosageInstructions = null);
 
 public record PrescriptionRow(
     Guid Id,
     string Description,
     decimal Quantity,
+    decimal? QuantityDispensed,
     string? DosageInstructions,
-    string DispensingType,
     string Status,
-    Guid? StockItemId,
-    string? StockItemName,
-    decimal? UnitPrice,
+    Guid StockItemId,
+    string StockItemName,
     DateTimeOffset CreatedAt);
+
+public record DispenseOutcome(
+    string Status,
+    decimal Quantity,
+    decimal? QuantityDispensed);
 
 // ─── Get ────────────────────────────────────────────────────────────────────
 
@@ -99,9 +100,9 @@ public class GetPrescriptionsHandler(ClinicalNotesDbContext db)
             .Where(p => p.VisitId == q.VisitId)
             .OrderBy(p => p.CreatedAt)
             .Select(p => new PrescriptionRow(
-                p.Id, p.Description, p.Quantity, p.DosageInstructions,
-                p.DispensingType.ToString(), p.Status.ToString(),
-                p.StockItemId, p.StockItemName, null, p.CreatedAt))
+                p.Id, p.Description, p.Quantity, p.QuantityDispensed,
+                p.DosageInstructions, p.Status.ToString(),
+                p.StockItemId, p.StockItemName, p.CreatedAt))
             .ToListAsync(ct);
     }
 }
@@ -110,23 +111,15 @@ public class GetPrescriptionsHandler(ClinicalNotesDbContext db)
 
 public record AddPrescriptionCommand(
     Guid VisitId,
-    string Description,
+    Guid StockItemId,
     decimal Quantity,
-    string? DosageInstructions,
-    string DispensingType,
-    Guid? StockItemId,
-    string? StockItemName,
-    decimal? UnitPrice) : IRequest<PrescriptionRow?>;
+    string? DosageInstructions) : IRequest<PrescriptionRow?>;
 
 public class AddPrescriptionValidator : AbstractValidator<AddPrescriptionCommand>
 {
     public AddPrescriptionValidator()
     {
-        RuleFor(x => x.Description).NotEmpty().MaximumLength(500);
         RuleFor(x => x.Quantity).GreaterThan(0);
-        RuleFor(x => x.DispensingType)
-            .Must(t => Enum.TryParse<DispensingType>(t, true, out _))
-            .WithMessage($"DispensingType must be one of: {string.Join(", ", Enum.GetNames<DispensingType>())}");
     }
 }
 
@@ -141,31 +134,18 @@ public class AddPrescriptionHandler(
         var visit = await db.Visits.FirstOrDefaultAsync(v => v.Id == cmd.VisitId, ct);
         if (visit is null) return null;
 
-        var dispensingType = Enum.Parse<DispensingType>(cmd.DispensingType, ignoreCase: true);
-
-        string? stockItemName = cmd.StockItemName;
-        decimal? unitPrice = cmd.UnitPrice;
-
-        if (dispensingType == DispensingType.BillAndDispense && cmd.StockItemId.HasValue)
-        {
-            var info = await inventoryService.GetStockItemAsync(currentUser.PracticeId, cmd.StockItemId.Value, ct);
-            if (info is not null)
-            {
-                stockItemName ??= info.Name;
-                unitPrice ??= info.SellingPrice;
-            }
-        }
+        var stockItem = await inventoryService.GetStockItemAsync(currentUser.PracticeId, cmd.StockItemId, ct);
+        if (stockItem is null)
+            throw new UtanoDomainException("Stock item not found.");
 
         var prescription = Prescription.Create(
             currentUser.PracticeId,
             visit.Id,
             visit.PatientId,
             visit.PatientName,
-            cmd.Description,
-            cmd.Quantity,
-            dispensingType,
             cmd.StockItemId,
-            stockItemName,
+            stockItem.Name,
+            cmd.Quantity,
             cmd.DosageInstructions);
 
         db.Prescriptions.Add(prescription);
@@ -173,46 +153,48 @@ public class AddPrescriptionHandler(
 
         return new PrescriptionRow(
             prescription.Id, prescription.Description, prescription.Quantity,
-            prescription.DosageInstructions, prescription.DispensingType.ToString(),
+            prescription.QuantityDispensed, prescription.DosageInstructions,
             prescription.Status.ToString(), prescription.StockItemId,
-            prescription.StockItemName, unitPrice, prescription.CreatedAt);
+            prescription.StockItemName, prescription.CreatedAt);
     }
 }
 
 // ─── Dispense ───────────────────────────────────────────────────────────────
 
-public record DispensePrescriptionCommand(Guid VisitId, Guid PrescriptionId) : IRequest<bool>;
+public record DispensePrescriptionCommand(Guid VisitId, Guid PrescriptionId, decimal? QuantityOverride = null) : IRequest<DispenseOutcome?>;
 
 public class DispensePrescriptionHandler(
     ClinicalNotesDbContext db,
     ICurrentUserService currentUser,
     IInventoryService inventoryService,
     IBillingService billingService)
-    : IRequestHandler<DispensePrescriptionCommand, bool>
+    : IRequestHandler<DispensePrescriptionCommand, DispenseOutcome?>
 {
-    public async Task<bool> Handle(DispensePrescriptionCommand cmd, CancellationToken ct)
+    public async Task<DispenseOutcome?> Handle(DispensePrescriptionCommand cmd, CancellationToken ct)
     {
         var prescription = await db.Prescriptions
             .FirstOrDefaultAsync(p => p.Id == cmd.PrescriptionId && p.VisitId == cmd.VisitId, ct);
-        if (prescription is null) return false;
+        if (prescription is null) return null;
 
-        if (prescription.Status == PrescriptionStatus.Dispensed)
-            throw new UtanoDomainException("Prescription has already been dispensed.");
+        if (prescription.Status != PrescriptionStatus.Pending)
+            throw new UtanoDomainException("Prescription has already been processed.");
 
-        if (prescription.DispensingType == DispensingType.BillAndDispense)
+        var stockItem = await inventoryService.GetStockItemAsync(currentUser.PracticeId, prescription.StockItemId, ct);
+        if (stockItem is null)
+            throw new UtanoDomainException("Stock item not found.");
+
+        var available = stockItem.QuantityOnHand;
+        // If caller specifies a quantity (partial fulfil), cap it by available stock.
+        // Otherwise auto-compute: dispense as much as possible.
+        var requested = cmd.QuantityOverride ?? prescription.Quantity;
+        var toDispense = Math.Min(requested, available);
+
+        if (toDispense > 0)
         {
-            if (!prescription.StockItemId.HasValue)
-                throw new UtanoDomainException("Cannot dispense: no stock item linked.");
-
-            var info = await inventoryService.GetStockItemAsync(currentUser.PracticeId, prescription.StockItemId.Value, ct);
-            if (info is null) throw new UtanoDomainException("Stock item not found.");
-            if (info.QuantityOnHand < prescription.Quantity)
-                throw new UtanoDomainException($"Insufficient stock. Available: {info.QuantityOnHand} {info.Unit}.");
-
             await inventoryService.DispenseAsync(
                 currentUser.PracticeId,
-                prescription.StockItemId.Value,
-                prescription.Quantity,
+                prescription.StockItemId,
+                toDispense,
                 $"Prescription for {prescription.PatientName}",
                 prescription.Id,
                 ct);
@@ -223,15 +205,24 @@ public class DispensePrescriptionHandler(
                 prescription.PatientId,
                 prescription.PatientName,
                 prescription.Description,
-                prescription.Quantity,
-                info.SellingPrice,
+                toDispense,
+                stockItem.SellingPrice,
                 prescription.StockItemId,
                 ct);
+
+            prescription.Dispense(toDispense);
+        }
+        else
+        {
+            prescription.MarkExternal();
         }
 
-        prescription.MarkDispensed();
         await db.SaveChangesAsync(ct);
-        return true;
+
+        return new DispenseOutcome(
+            prescription.Status.ToString(),
+            prescription.Quantity,
+            prescription.QuantityDispensed);
     }
 }
 
@@ -248,8 +239,8 @@ public class RemovePrescriptionHandler(ClinicalNotesDbContext db)
             .FirstOrDefaultAsync(p => p.Id == cmd.PrescriptionId && p.VisitId == cmd.VisitId, ct);
         if (prescription is null) return false;
 
-        if (prescription.Status == PrescriptionStatus.Dispensed)
-            throw new UtanoDomainException("Cannot remove a dispensed prescription.");
+        if (prescription.Status != PrescriptionStatus.Pending)
+            throw new UtanoDomainException("Cannot remove a prescription that has already been processed.");
 
         db.Prescriptions.Remove(prescription);
         await db.SaveChangesAsync(ct);

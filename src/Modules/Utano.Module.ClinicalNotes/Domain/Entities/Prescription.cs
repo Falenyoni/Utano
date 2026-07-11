@@ -11,12 +11,12 @@ public class Prescription : AggregateRoot
     public Guid VisitId { get; private set; }
     public Guid PatientId { get; private set; }
     public string PatientName { get; private set; } = null!;
-    public Guid? StockItemId { get; private set; }
-    public string? StockItemName { get; private set; }
+    public Guid StockItemId { get; private set; }
+    public string StockItemName { get; private set; } = null!;
     public string Description { get; private set; } = null!;
     public decimal Quantity { get; private set; }
+    public decimal? QuantityDispensed { get; private set; }
     public string? DosageInstructions { get; private set; }
-    public DispensingType DispensingType { get; private set; }
     public PrescriptionStatus Status { get; private set; }
 
     public static Prescription Create(
@@ -24,19 +24,13 @@ public class Prescription : AggregateRoot
         Guid visitId,
         Guid patientId,
         string patientName,
-        string description,
+        Guid stockItemId,
+        string stockItemName,
         decimal quantity,
-        DispensingType dispensingType,
-        Guid? stockItemId = null,
-        string? stockItemName = null,
         string? dosageInstructions = null)
     {
-        if (string.IsNullOrWhiteSpace(description))
-            throw new UtanoDomainException("Prescription description is required.");
         if (quantity <= 0)
             throw new UtanoDomainException("Quantity must be greater than zero.");
-        if (dispensingType == DispensingType.BillAndDispense && stockItemId is null)
-            throw new UtanoDomainException("A stock item must be selected for Bill & Dispense prescriptions.");
 
         return new Prescription
         {
@@ -45,23 +39,36 @@ public class Prescription : AggregateRoot
             VisitId = visitId,
             PatientId = patientId,
             PatientName = patientName,
-            Description = description.Trim(),
-            Quantity = quantity,
-            DispensingType = dispensingType,
-            Status = PrescriptionStatus.Pending,
             StockItemId = stockItemId,
-            StockItemName = stockItemName?.Trim(),
+            StockItemName = stockItemName.Trim(),
+            Description = stockItemName.Trim(),
+            Quantity = quantity,
+            Status = PrescriptionStatus.Pending,
             DosageInstructions = dosageInstructions?.Trim(),
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow
         };
     }
 
-    public void MarkDispensed()
+    public void Dispense(decimal quantityDispensed)
     {
-        if (Status == PrescriptionStatus.Dispensed)
-            throw new UtanoDomainException("Prescription is already dispensed.");
-        Status = PrescriptionStatus.Dispensed;
+        if (Status != PrescriptionStatus.Pending)
+            throw new UtanoDomainException("Prescription cannot be dispensed in its current state.");
+        if (quantityDispensed <= 0)
+            throw new UtanoDomainException("Quantity dispensed must be greater than zero.");
+
+        QuantityDispensed = quantityDispensed;
+        Status = quantityDispensed >= Quantity
+            ? PrescriptionStatus.Dispensed
+            : PrescriptionStatus.PartiallyDispensed;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void MarkExternal()
+    {
+        if (Status != PrescriptionStatus.Pending)
+            throw new UtanoDomainException("Prescription cannot be marked external in its current state.");
+        Status = PrescriptionStatus.External;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 }

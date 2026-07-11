@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Utano.Module.ClinicalNotes.DatabaseMappings;
@@ -11,9 +12,11 @@ using Utano.Module.ClinicalNotes.DatabaseMappings;
 namespace Utano.Module.ClinicalNotes.Migrations
 {
     [DbContext(typeof(ClinicalNotesDbContext))]
-    partial class ClinicalNotesDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260711210109_RedesignPrescriptions")]
+    partial class RedesignPrescriptions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -248,92 +251,6 @@ namespace Utano.Module.ClinicalNotes.Migrations
                     b.HasIndex("PracticeId", "VisitDate");
 
                     b.ToTable("Visits", "clinical");
-                });
-
-            modelBuilder.Entity("Utano.Module.ClinicalNotes.Domain.Entities.VisitDiagnosis", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("IcdCode")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.Property<bool>("IsPrimary")
-                        .HasColumnType("boolean");
-
-                    b.Property<Guid>("PracticeId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("VisitId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PracticeId");
-
-                    b.HasIndex("VisitId");
-
-                    b.ToTable("VisitDiagnoses", "clinical");
-                });
-
-            modelBuilder.Entity("Utano.Module.ClinicalNotes.Domain.Entities.VisitProcedure", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("NhrplCode")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
-
-                    b.Property<bool>("PostedToInvoice")
-                        .HasColumnType("boolean");
-
-                    b.Property<Guid>("PracticeId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("ServiceItemId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("VisitId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PracticeId");
-
-                    b.HasIndex("VisitId");
-
-                    b.ToTable("VisitProcedures", "clinical");
                 });
 #pragma warning restore 612, 618
         }

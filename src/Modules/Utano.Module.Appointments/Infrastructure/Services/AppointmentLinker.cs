@@ -22,4 +22,10 @@ public class AppointmentLinker(
         appointment.Complete();
         await writeRepository.UpdateAsync(appointment, cancellationToken);
     }
+
+    public async Task<string?> GetAppointmentTypeKeyAsync(Guid appointmentId, CancellationToken cancellationToken = default)
+    {
+        var appointment = await readRepository.GetByIdAsync(appointmentId, cancellationToken);
+        return appointment?.Type.ToString();
+    }
 }

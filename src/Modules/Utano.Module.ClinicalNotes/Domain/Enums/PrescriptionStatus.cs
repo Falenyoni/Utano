@@ -1,3 +1,3 @@
 namespace Utano.Module.ClinicalNotes.Domain.Enums;
 
-public enum PrescriptionStatus { Pending, Dispensed }
+public enum PrescriptionStatus { Pending, Dispensed, PartiallyDispensed, External }

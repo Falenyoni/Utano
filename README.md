@@ -524,3 +524,93 @@ Permissions are embedded in the JWT at login. If an admin changes permissions, e
 | Patient portal | Patients view their own visit history, invoices, prescriptions |
 | Unit and integration tests | No tests written yet; EF Core integration tests against a real DB are the priority |
 | Cross-practice reporting | For practice owners — revenue and patient totals aggregated across all their practices |
+
+---
+
+## Design Decisions — Pending Implementation
+
+### Doctor External Hospital Sessions
+
+**Problem:** Doctors registered under a practice also consult at external hospitals (e.g., private ward rounds, surgical assists). They need to bill those hospitals and track payment — this is a separate financial relationship from patient billing.
+
+**Decision: Session-based model (not per-patient)**
+External hospital work is logged as a session, not patient-by-patient. Hospitals pay per session or procedure list — registering individual patients from a hospital ward round adds friction with no billing benefit.
+
+**Entities to add:**
+- `ExternalFacility` — name, type (Hospital/Clinic), billing contact, address. Managed under Settings.
+- `DoctorSession` — doctor, facility, date, session type (WardRound/SurgicalAssist/OutpatientClinic), patient count, fee, notes.
+- `FacilityInvoice` — same structure as a patient invoice but `PayerType = Facility`, linked to `ExternalFacilityId`. Line items are session fees, not per-patient charges.
+- Extend `Claims` module: add `ClaimType` enum (`MedicalAid` | `Facility`). Facility claims track submission to the hospital, approval, and payment.
+
+**What stays the same:** All regular patient invoices and medical aid claims are unaffected. This is an additive module.
+
+**Status:** Discussed — not yet designed in detail. Decision pending: confirm session-based approach with users before building.
+
+---
+
+### Billing — Discounts and Write-offs
+
+**Current state:** Per-line-item `discountPercent` exists on `InvoiceLineItem`. No invoice-level discount. No write-off mechanism.
+
+**Gaps identified:**
+
+| Gap | Description |
+|---|---|
+| Invoice-level discount | Apply a percentage or fixed amount off the whole invoice (e.g., staff discount, pensioner rate, hardship) |
+| Discount reason | Mandatory audit field — why was the discount applied? (Staff / Courtesy / Hardship / Dispute settlement) |
+| Write-off | Separate action to void an uncollectable balance. Hits a bad-debt ledger, not a regular discount. Requires mandatory reason and should be irreversible. |
+
+**Fields to add to `Invoice`:**
+```
+InvoiceDiscountPercent  decimal?
+InvoiceDiscountAmount   decimal?   -- only one of percent/amount applies
+DiscountReason          string?
+IsWrittenOff            bool
+WriteOffReason          string?
+WriteOffDate            DateTime?
+WriteOffByUserId        Guid?
+```
+
+**Business rule:** `InvoiceDiscountPercent` and `InvoiceDiscountAmount` are mutually exclusive. The calculated `TotalAmount` reflects the invoice-level discount applied after line item subtotals.
+
+**Status:** Discussed — not yet implemented.
+
+---
+
+### Medical Aid Shortfalls and Reconciliation
+
+**Problem:** Medical aids rarely pay the full claimed amount. Practices need to:
+1. Know what the medical aid actually paid vs what was claimed
+2. Transfer the unpaid portion (shortfall) to the patient's balance or write it off
+3. Process bulk payments from Remittance Advice (RA) documents without opening each invoice individually
+
+**Current state:** The system tracks `MedAidClaimAmount` and payments tagged `MedicalAid`. Shortfall is displayed as `MedAidClaimAmount - MedAidPaymentsTotal` but has no explicit workflow — it sits as an unpaid amount with no owner.
+
+**Gaps:**
+
+| Gap | Description |
+|---|---|
+| Shortfall owner | When medical aid underpays, the balance must be explicitly assigned: bill to patient, write off, or dispute |
+| Rejection workflow | `ClaimRejected` → reason recorded → options: bill patient / write off / dispute & resubmit |
+| Bulk RA processing | Medical aids send one Remittance Advice covering many claims. Need a single screen to match and post all payments at once |
+| Dispute tracking | Rejected or underpaid claims can be disputed with the medical aid. Need `Disputed` status and resubmission date |
+
+**Entities to add:**
+
+- `RemittanceAdvice` — date, medical aid, total paid, reference number, imported by user
+- `RemittanceAdviceLine` — links to `Invoice`, amount claimed, amount approved, rejection reason, status
+- `InvoiceShortfallAction` — per invoice: `BilledToPatient` | `WrittenOff` | `Disputed`, date, notes
+
+**Workflow:**
+```
+RA received from medical aid
+  └─ Enter/import RA lines
+  └─ System matches lines to submitted claims by invoice reference
+  └─ Bulk post: records MedicalAid payment per matched invoice
+  └─ For each shortfall: prompt "Bill to patient / Write off / Dispute"
+  └─ BillToPatient → shortfall amount added to patient's balance (new line item or balance transfer)
+  └─ WrittenOff → balance cleared, reason recorded
+  └─ Disputed → status set, follow-up date set, RA line marked for resubmission
+```
+
+**Status:** Discussed — design agreed. Not yet implemented. Priority: after invoice-level discounts are done.
