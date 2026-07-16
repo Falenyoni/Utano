@@ -11,6 +11,7 @@ public record LoginUserResponse(
     string PracticeName,
     string? PrimaryColor,
     string? LogoBase64,
+    bool HasDispensary,
     string AccessToken,
     string RefreshToken,
     DateTimeOffset ExpiresAt

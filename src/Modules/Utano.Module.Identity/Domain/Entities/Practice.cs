@@ -12,6 +12,7 @@ public class Practice : AggregateRoot
     public string ContactPhone { get; private set; } = null!;
     public string PhysicalAddress { get; private set; } = null!;
     public bool IsActive { get; private set; }
+    public bool HasDispensary { get; private set; }
     public string? PrimaryColor { get; private set; }
     public string? LogoBase64 { get; private set; }
 
@@ -21,6 +22,12 @@ public class Practice : AggregateRoot
         PrimaryColor = primaryColor;
         if (logoBase64 is not null)
             LogoBase64 = logoBase64 == string.Empty ? null : logoBase64;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void SetHasDispensary(bool value)
+    {
+        HasDispensary = value;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 

@@ -64,6 +64,14 @@ public class Appointment : AggregateRoot
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
+    public void CheckIn()
+    {
+        if (Status is not (AppointmentStatus.Scheduled or AppointmentStatus.Confirmed))
+            throw new UtanoDomainException("Only scheduled or confirmed appointments can be checked in.");
+        Status = AppointmentStatus.CheckedIn;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
     public void Cancel(string reason)
     {
         if (Status is AppointmentStatus.Completed or AppointmentStatus.Cancelled)
@@ -75,8 +83,8 @@ public class Appointment : AggregateRoot
 
     public void MarkNoShow()
     {
-        if (Status is not (AppointmentStatus.Scheduled or AppointmentStatus.Confirmed))
-            throw new UtanoDomainException("Only scheduled or confirmed appointments can be marked as no-show.");
+        if (Status is not (AppointmentStatus.Scheduled or AppointmentStatus.Confirmed or AppointmentStatus.CheckedIn))
+            throw new UtanoDomainException("Only scheduled, confirmed, or checked-in appointments can be marked as no-show.");
         Status = AppointmentStatus.NoShow;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
@@ -91,8 +99,8 @@ public class Appointment : AggregateRoot
 
     public void StartVisit()
     {
-        if (Status is not (AppointmentStatus.Scheduled or AppointmentStatus.Confirmed))
-            throw new UtanoDomainException("Only scheduled or confirmed appointments can be started.");
+        if (Status is not (AppointmentStatus.Scheduled or AppointmentStatus.Confirmed or AppointmentStatus.CheckedIn))
+            throw new UtanoDomainException("Only scheduled, confirmed, or checked-in appointments can be started.");
         Status = AppointmentStatus.InProgress;
         UpdatedAt = DateTimeOffset.UtcNow;
     }

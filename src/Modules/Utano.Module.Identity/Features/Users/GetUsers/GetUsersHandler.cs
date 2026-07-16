@@ -24,5 +24,6 @@ public class GetUsersHandler(
     }
 
     private static UserSummaryResponse Map(Domain.Entities.User u) =>
-        new(u.Id, u.FullName, u.Email.Value, u.Role.ToString(), u.Status.ToString());
+        new(u.Id, u.FullName, u.Email.Value, u.Role.ToString(), u.Status.ToString(),
+            u.RoleAssignments.Select(ra => ra.RoleId).ToList());
 }
