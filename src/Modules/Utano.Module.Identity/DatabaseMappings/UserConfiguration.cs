@@ -43,6 +43,14 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasForeignKey(r => r.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasMany(u => u.RoleAssignments)
+            .WithOne()
+            .HasForeignKey(ur => ur.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(u => u.RoleAssignments)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
         builder.HasIndex(u => u.Email).IsUnique();
     }
 }

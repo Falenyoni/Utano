@@ -16,6 +16,9 @@ public class UserReadRepository(IdentityDbContext context) : IUserReadRepository
         return await context.Users
             .AsNoTracking()
             .Include(u => u.RefreshTokens)
+            .Include(u => u.RoleAssignments)
+                .ThenInclude(ra => ra.Role)
+                    .ThenInclude(r => r.Permissions)
             .FirstOrDefaultAsync(u => u.Email == emailVO, cancellationToken);
     }
 
@@ -24,6 +27,9 @@ public class UserReadRepository(IdentityDbContext context) : IUserReadRepository
     {
         return await context.Users
             .Include(u => u.RefreshTokens)
+            .Include(u => u.RoleAssignments)
+                .ThenInclude(ra => ra.Role)
+                    .ThenInclude(r => r.Permissions)
             .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
     }
 

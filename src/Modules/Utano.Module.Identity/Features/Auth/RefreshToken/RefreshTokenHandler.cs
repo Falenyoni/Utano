@@ -26,7 +26,13 @@ public class RefreshTokenHandler(
         if (existing is null || !existing.IsActive)
             throw new UtanoDomainException("Refresh token is invalid or has expired.");
 
-        var newAccessToken = tokenService.GenerateJwtToken(user);
+        var permissions = user.RoleAssignments
+            .Where(ra => ra.Role?.IsActive == true)
+            .SelectMany(ra => ra.Role.GetPermissionKeys())
+            .Distinct()
+            .ToList();
+
+        var newAccessToken = tokenService.GenerateJwtToken(user, permissions);
         var newRefreshTokenValue = tokenService.GenerateRefreshToken();
 
         // Revoke all active tokens — they are tracked entities, EF detects the change

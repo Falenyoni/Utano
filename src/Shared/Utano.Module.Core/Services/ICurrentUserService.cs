@@ -7,4 +7,6 @@ public interface ICurrentUserService
     string FullName { get; }
     string Role { get; }
     Guid PracticeId { get; }
+    IReadOnlyList<string> Permissions { get; }
+    bool HasPermission(string permission);
 }

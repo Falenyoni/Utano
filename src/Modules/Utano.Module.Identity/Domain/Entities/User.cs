@@ -10,6 +10,7 @@ public class User : AggregateRoot
     private User() { }
 
     private readonly List<RefreshToken> _refreshTokens = new();
+    private readonly List<UserRoleAssignment> _roleAssignments = new();
 
     public string FirstName { get; private set; } = null!;
     public string LastName { get; private set; } = null!;
@@ -20,6 +21,7 @@ public class User : AggregateRoot
 
     public string FullName => $"{FirstName} {LastName}";
     public IReadOnlyCollection<RefreshToken> RefreshTokens => _refreshTokens.AsReadOnly();
+    public IReadOnlyCollection<UserRoleAssignment> RoleAssignments => _roleAssignments.AsReadOnly();
 
     public static User Create(Guid practiceId, string firstName, string lastName,
         string email, string passwordHash, UserRole role)

@@ -12,6 +12,17 @@ public class Practice : AggregateRoot
     public string ContactPhone { get; private set; } = null!;
     public string PhysicalAddress { get; private set; } = null!;
     public bool IsActive { get; private set; }
+    public string? PrimaryColor { get; private set; }
+    public string? LogoBase64 { get; private set; }
+
+    // logoBase64: null = keep existing, "" = clear logo, any other value = update logo
+    public void UpdateBranding(string? primaryColor, string? logoBase64)
+    {
+        PrimaryColor = primaryColor;
+        if (logoBase64 is not null)
+            LogoBase64 = logoBase64 == string.Empty ? null : logoBase64;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
 
     public void Update(string name, string contactEmail, string contactPhone, string physicalAddress)
     {

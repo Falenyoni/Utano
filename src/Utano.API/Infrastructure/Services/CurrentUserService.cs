@@ -22,4 +22,10 @@ public class CurrentUserService(IHttpContextAccessor httpContextAccessor) : ICur
 
     public Guid PracticeId =>
         Guid.Parse(User?.FindFirstValue("PracticeId") ?? Guid.Empty.ToString());
+
+    public IReadOnlyList<string> Permissions =>
+        User?.FindAll("permission").Select(c => c.Value).ToList() ?? [];
+
+    public bool HasPermission(string permission) =>
+        Permissions.Contains(permission);
 }

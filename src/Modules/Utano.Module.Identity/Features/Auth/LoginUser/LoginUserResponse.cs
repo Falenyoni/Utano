@@ -5,8 +5,12 @@ public record LoginUserResponse(
     string FullName,
     string Email,
     string Role,
+    List<string> Roles,
+    List<string> Permissions,
     Guid PracticeId,
     string PracticeName,
+    string? PrimaryColor,
+    string? LogoBase64,
     string AccessToken,
     string RefreshToken,
     DateTimeOffset ExpiresAt

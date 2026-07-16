@@ -17,6 +17,8 @@ public class PracticeConfiguration : IEntityTypeConfiguration<Practice>
         builder.Property(p => p.ContactPhone).HasMaxLength(30).IsRequired();
         builder.Property(p => p.PhysicalAddress).HasMaxLength(500).IsRequired();
         builder.Property(p => p.IsActive).IsRequired();
+        builder.Property(p => p.PrimaryColor).HasMaxLength(20);
+        builder.Property(p => p.LogoBase64);
         builder.Property(p => p.CreatedAt).IsRequired();
         builder.Property(p => p.UpdatedAt).IsRequired();
     }
