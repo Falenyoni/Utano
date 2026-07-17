@@ -13,6 +13,8 @@ public class Practice : AggregateRoot
     public string PhysicalAddress { get; private set; } = null!;
     public bool IsActive { get; private set; }
     public bool HasDispensary { get; private set; }
+    public string? AdhozNumber { get; private set; }
+    public string? BpNumber { get; private set; }
     public string? PrimaryColor { get; private set; }
     public string? LogoBase64 { get; private set; }
 
@@ -31,7 +33,7 @@ public class Practice : AggregateRoot
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
-    public void Update(string name, string contactEmail, string contactPhone, string physicalAddress)
+    public void Update(string name, string contactEmail, string contactPhone, string physicalAddress, string? adhozNumber, string? bpNumber)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new UtanoDomainException("Practice name is required.");
@@ -41,6 +43,8 @@ public class Practice : AggregateRoot
         ContactEmail = contactEmail.Trim().ToLower();
         ContactPhone = contactPhone.Trim();
         PhysicalAddress = physicalAddress.Trim();
+        AdhozNumber = string.IsNullOrWhiteSpace(adhozNumber) ? null : adhozNumber.Trim();
+        BpNumber = string.IsNullOrWhiteSpace(bpNumber) ? null : bpNumber.Trim();
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 

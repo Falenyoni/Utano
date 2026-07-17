@@ -18,6 +18,8 @@ public class PracticeConfiguration : IEntityTypeConfiguration<Practice>
         builder.Property(p => p.PhysicalAddress).HasMaxLength(500).IsRequired();
         builder.Property(p => p.IsActive).IsRequired();
         builder.Property(p => p.HasDispensary).IsRequired().HasDefaultValue(false);
+        builder.Property(p => p.AdhozNumber).HasMaxLength(50);
+        builder.Property(p => p.BpNumber).HasMaxLength(50);
         builder.Property(p => p.PrimaryColor).HasMaxLength(20);
         builder.Property(p => p.LogoBase64);
         builder.Property(p => p.CreatedAt).IsRequired();
