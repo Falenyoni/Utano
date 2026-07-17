@@ -63,7 +63,8 @@ public class BulkImportAppointmentsHandler(
                     row.StartTime,
                     row.EndTime,
                     type,
-                    row.Notes);
+                    row.Notes,
+                    allowPastDate: true);
 
                 await repo.AddAsync(appointment, ct);
                 imported++;

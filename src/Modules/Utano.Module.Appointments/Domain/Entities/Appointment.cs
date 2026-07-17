@@ -30,11 +30,14 @@ public class Appointment : AggregateRoot
         TimeOnly startTime,
         TimeOnly endTime,
         AppointmentType type,
-        string? notes = null)
+        string? notes = null,
+        bool allowPastDate = false)
     {
         if (practiceId == Guid.Empty) throw new UtanoDomainException("Practice is required.");
         if (patientId == Guid.Empty) throw new UtanoDomainException("Patient is required.");
         if (doctorId == Guid.Empty) throw new UtanoDomainException("Doctor is required.");
+        if (!allowPastDate && date < DateOnly.FromDateTime(DateTime.UtcNow))
+            throw new UtanoDomainException("Appointment date cannot be in the past.");
         if (endTime <= startTime) throw new UtanoDomainException("End time must be after start time.");
 
         return new Appointment
@@ -109,6 +112,8 @@ public class Appointment : AggregateRoot
     {
         if (Status is AppointmentStatus.Completed or AppointmentStatus.Cancelled)
             throw new UtanoDomainException("Cannot reschedule a completed or cancelled appointment.");
+        if (newDate < DateOnly.FromDateTime(DateTime.UtcNow))
+            throw new UtanoDomainException("Appointment date cannot be in the past.");
         if (newEndTime <= newStartTime)
             throw new UtanoDomainException("End time must be after start time.");
 
