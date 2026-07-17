@@ -36,7 +36,7 @@ public class PracticeEndpoints(ISender sender) : ControllerBase
     }
 }
 
-public record PracticeResponse(Guid Id, string Name, string ContactEmail, string ContactPhone, string PhysicalAddress, bool HasDispensary, string? AdhozNumber, string? BpNumber);
+public record PracticeResponse(Guid Id, string Name, string ContactEmail, string ContactPhone, string PhysicalAddress, bool HasDispensary, string? AdhozNumber, string? BpNumber, string? LogoBase64);
 public record UpdatePracticeBody(string Name, string ContactEmail, string ContactPhone, string PhysicalAddress, bool HasDispensary, string? AdhozNumber, string? BpNumber);
 
 // ─── Get ────────────────────────────────────────────────────────────────────
@@ -50,7 +50,7 @@ public class GetPracticeHandler(IPracticeRepository repository, ICurrentUserServ
     {
         var practice = await repository.GetByIdAsync(currentUser.PracticeId, ct);
         if (practice is null) return null;
-        return new PracticeResponse(practice.Id, practice.Name, practice.ContactEmail, practice.ContactPhone, practice.PhysicalAddress, practice.HasDispensary, practice.AdhozNumber, practice.BpNumber);
+        return new PracticeResponse(practice.Id, practice.Name, practice.ContactEmail, practice.ContactPhone, practice.PhysicalAddress, practice.HasDispensary, practice.AdhozNumber, practice.BpNumber, practice.LogoBase64);
     }
 }
 
