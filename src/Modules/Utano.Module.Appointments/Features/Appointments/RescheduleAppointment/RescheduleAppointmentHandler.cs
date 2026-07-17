@@ -15,6 +15,17 @@ public class RescheduleAppointmentHandler(
         if (appointment is null)
             throw new UtanoDomainException("Appointment not found.");
 
+        var hasConflict = await readRepository.HasConflictAsync(
+            appointment.PracticeId,
+            appointment.DoctorId,
+            command.NewDate,
+            command.NewStartTime,
+            command.NewEndTime,
+            excludeAppointmentId: command.Id,
+            cancellationToken: cancellationToken);
+        if (hasConflict)
+            throw new UtanoDomainException("The doctor already has an appointment in that time slot.");
+
         appointment.Reschedule(command.NewDate, command.NewStartTime, command.NewEndTime);
         await writeRepository.UpdateAsync(appointment, cancellationToken);
     }

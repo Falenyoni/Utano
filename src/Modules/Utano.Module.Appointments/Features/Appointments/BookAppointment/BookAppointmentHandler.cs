@@ -9,6 +9,7 @@ using Utano.Module.Core.Services;
 namespace Utano.Module.Appointments.Features.Appointments.BookAppointment;
 
 public class BookAppointmentHandler(
+    IAppointmentReadRepository readRepository,
     IAppointmentWriteRepository writeRepository,
     ICurrentUserService currentUserService,
     IPatientStatusChecker patientStatusChecker,
@@ -25,6 +26,16 @@ public class BookAppointmentHandler(
         var isActive = await patientStatusChecker.IsActiveAsync(command.PatientId, cancellationToken);
         if (!isActive)
             throw new UtanoDomainException("Cannot book an appointment for an inactive patient.");
+
+        var hasConflict = await readRepository.HasConflictAsync(
+            currentUserService.PracticeId,
+            command.DoctorId,
+            command.AppointmentDate,
+            command.StartTime,
+            command.EndTime,
+            cancellationToken: cancellationToken);
+        if (hasConflict)
+            throw new UtanoDomainException("The doctor already has an appointment in that time slot.");
 
         var type = Enum.Parse<AppointmentType>(command.Type, ignoreCase: true);
 

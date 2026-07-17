@@ -15,4 +15,13 @@ public interface IAppointmentReadRepository
         int page,
         int pageSize,
         CancellationToken cancellationToken = default);
+
+    Task<bool> HasConflictAsync(
+        Guid practiceId,
+        Guid doctorId,
+        DateOnly date,
+        TimeOnly startTime,
+        TimeOnly endTime,
+        Guid? excludeAppointmentId = null,
+        CancellationToken cancellationToken = default);
 }

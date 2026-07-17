@@ -54,4 +54,27 @@ public class AppointmentReadRepository(AppointmentsDbContext context) : IAppoint
             PageSize = pageSize
         };
     }
+
+    public async Task<bool> HasConflictAsync(
+        Guid practiceId,
+        Guid doctorId,
+        DateOnly date,
+        TimeOnly startTime,
+        TimeOnly endTime,
+        Guid? excludeAppointmentId = null,
+        CancellationToken cancellationToken = default)
+    {
+        return await context.Appointments
+            .AsNoTracking()
+            .Where(a =>
+                a.PracticeId == practiceId &&
+                a.DoctorId == doctorId &&
+                a.AppointmentDate == date &&
+                a.Status != AppointmentStatus.Cancelled &&
+                a.Status != AppointmentStatus.Completed &&
+                (excludeAppointmentId == null || a.Id != excludeAppointmentId) &&
+                a.StartTime < endTime &&
+                a.EndTime > startTime)
+            .AnyAsync(cancellationToken);
+    }
 }
