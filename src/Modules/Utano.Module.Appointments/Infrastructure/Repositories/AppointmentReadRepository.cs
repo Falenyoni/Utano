@@ -55,6 +55,21 @@ public class AppointmentReadRepository(AppointmentsDbContext context) : IAppoint
         };
     }
 
+    public async Task<IReadOnlyList<Appointment>> GetByDoctorDateAsync(
+        Guid practiceId,
+        Guid doctorId,
+        DateOnly date,
+        CancellationToken cancellationToken = default)
+        => await context.Appointments
+            .AsNoTracking()
+            .Where(a =>
+                a.DoctorId == doctorId &&
+                a.AppointmentDate == date &&
+                a.Status != AppointmentStatus.Cancelled &&
+                a.Status != AppointmentStatus.Completed)
+            .OrderBy(a => a.StartTime)
+            .ToListAsync(cancellationToken);
+
     public async Task<bool> HasConflictAsync(
         Guid practiceId,
         Guid doctorId,

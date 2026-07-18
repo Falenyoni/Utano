@@ -29,6 +29,7 @@
     <ProjectReference Include="..\Modules\Utano.Module.ClinicalNotes\Utano.Module.ClinicalNotes.csproj" />
     <ProjectReference Include="..\Modules\Utano.Module.Doctors\Utano.Module.Doctors.csproj" />
     <ProjectReference Include="..\Modules\Utano.Module.Inventory\Utano.Module.Inventory.csproj" />
+    <ProjectReference Include="..\Modules\Utano.Module.Files\Utano.Module.Files.csproj" />
     <ProjectReference Include="..\Modules\Utano.Module.Patients\Utano.Module.Patients.csproj" />
     <ProjectReference Include="..\Shared\Utano.Module.Core\Utano.Module.Core.csproj" />
     <ProjectReference Include="..\Shared\Utano.Shared.Models\Utano.Shared.Models.csproj" />

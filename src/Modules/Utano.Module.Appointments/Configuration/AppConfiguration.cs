@@ -28,6 +28,7 @@ public static class AppConfiguration
         services.AddScoped<IAppointmentReadRepository, AppointmentReadRepository>();
         services.AddScoped<IAppointmentWriteRepository, AppointmentWriteRepository>();
         services.AddScoped<IAppointmentLinker, AppointmentLinker>();
+        services.AddScoped<IDoctorScheduleRepository, DoctorScheduleRepository>();
 
         return services;
     }

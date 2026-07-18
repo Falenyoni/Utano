@@ -108,6 +108,16 @@ public class Appointment : AggregateRoot
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
+    public void Reassign(Guid newDoctorId, string newDoctorName)
+    {
+        if (newDoctorId == Guid.Empty) throw new UtanoDomainException("Doctor is required.");
+        if (Status is AppointmentStatus.Completed or AppointmentStatus.Cancelled)
+            throw new UtanoDomainException("Cannot reassign a completed or cancelled appointment.");
+        DoctorId = newDoctorId;
+        DoctorName = newDoctorName;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
     public void Reschedule(DateOnly newDate, TimeOnly newStartTime, TimeOnly newEndTime)
     {
         if (Status is AppointmentStatus.Completed or AppointmentStatus.Cancelled)

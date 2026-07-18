@@ -24,4 +24,10 @@ public interface IAppointmentReadRepository
         TimeOnly endTime,
         Guid? excludeAppointmentId = null,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<Appointment>> GetByDoctorDateAsync(
+        Guid practiceId,
+        Guid doctorId,
+        DateOnly date,
+        CancellationToken cancellationToken = default);
 }

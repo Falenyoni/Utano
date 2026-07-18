@@ -9,6 +9,7 @@ using Utano.Module.Billing.Configuration;
 using Utano.Module.ClinicalNotes.Configuration;
 using Utano.Module.Core.Services;
 using Utano.Module.Identity.Configuration;
+using Utano.Module.Files.Configuration;
 using Utano.Module.Inventory.Configuration;
 using Utano.Module.Patients.Configuration;
 
@@ -43,6 +44,7 @@ public static class AppConfiguration
         builder.Services.AddClinicalNotesModule(builder.Configuration);
         builder.Services.AddInventoryModule(builder.Configuration);
         builder.Services.AddBillingModule(builder.Configuration);
+        builder.Services.AddFilesModule(builder.Configuration);
 
         builder.Services.AddControllers()
             .AddJsonOptions(options =>
@@ -104,6 +106,7 @@ public static class AppConfiguration
         app.ConfigureClinicalNotesModule();
         app.ConfigureInventoryModule();
         app.ConfigureBillingModule();
+        app.ConfigureFilesModule();
 
         return app;
     }

@@ -16,6 +16,8 @@ public class AppointmentsDbContext : DbContext
     }
 
     public DbSet<Appointment> Appointments { get; set; }
+    public DbSet<DoctorSchedule> DoctorSchedules { get; set; }
+    public DbSet<DoctorScheduleException> DoctorScheduleExceptions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -24,5 +26,11 @@ public class AppointmentsDbContext : DbContext
 
         modelBuilder.Entity<Appointment>()
             .HasQueryFilter(a => a.PracticeId == _currentUserService.PracticeId);
+
+        modelBuilder.Entity<DoctorSchedule>()
+            .HasQueryFilter(s => s.PracticeId == _currentUserService.PracticeId);
+
+        modelBuilder.Entity<DoctorScheduleException>()
+            .HasQueryFilter(e => e.PracticeId == _currentUserService.PracticeId);
     }
 }

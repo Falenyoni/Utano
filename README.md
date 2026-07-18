@@ -5,6 +5,17 @@ It covers the full patient journey: registration → appointment → triage → 
 
 ---
 
+## Documentation
+
+| Doc | Contents |
+|---|---|
+| [docs/file-storage.md](docs/file-storage.md) | Cloudflare R2 integration, presigned URL flow, module structure, setup guide |
+| [docs/appointments.md](docs/appointments.md) | Domain rules (past-date guard, double-booking), bulk CSV import, status transitions |
+| [docs/pdf-exports.md](docs/pdf-exports.md) | Invoice PDF and reports PDF — layout, libraries, key implementation patterns |
+| [docs/patient-portal.md](docs/patient-portal.md) | Patient-facing portal design decisions and planned architecture |
+
+---
+
 ## Tech Stack
 
 | Concern | Technology |
@@ -34,6 +45,7 @@ src/
     Utano.Module.Billing/
     Utano.Module.ClinicalNotes/
     Utano.Module.Doctors/
+    Utano.Module.Files/
     Utano.Module.Identity/
     Utano.Module.Inventory/
     Utano.Module.Patients/
@@ -311,6 +323,24 @@ When a prescription is dispensed, the `Dispensed` stock transaction is created b
 
 ---
 
+### Files (`Utano.Module.Files`)
+
+Patient file attachments stored on Cloudflare R2. Files are uploaded directly from the browser via presigned PUT URLs — the server never proxies file bytes.
+
+**Supported types:** JPEG, PNG, WebP, GIF, PDF, DICOM. Max 50 MB per file.
+
+**Attachment types:** `XRay`, `LabResult`, `ClinicalNote`, `Referral`, `Prescription`, `ConsentForm`, `InsuranceDocument`, `Other`
+
+**Endpoints:**
+- `POST /api/files/upload-url` — register metadata + return a 5-min presigned PUT URL for direct browser upload
+- `GET /api/files/{id}/url` — return a 60-min presigned GET URL for download/display
+- `GET /api/files?patientId={}&type={}` — list file metadata for a patient
+- `DELETE /api/files/{id}` — soft-delete record + remove object from R2
+
+See [docs/file-storage.md](docs/file-storage.md) for the full integration guide, upload flow, and R2 setup.
+
+---
+
 ### Doctors (`Utano.Module.Doctors`)
 
 Staff registry. Used to populate doctor/staff selectors.
@@ -518,7 +548,7 @@ Permissions are embedded in the JWT at login. If an admin changes permissions, e
 | Medical Aid Claims | Track claim submission, status, and response per invoice |
 | Full Reports module | Revenue by doctor / period / medical aid; patient visit frequency; stock turnover |
 | Appointment reminders | SMS or email to patients before scheduled appointments |
-| Document uploads | Attach lab results, referral letters, images to a visit |
+| Document uploads | ✅ Scaffolded — see `Utano.Module.Files` and [docs/file-storage.md](docs/file-storage.md). Needs frontend integration into visit/patient detail pages. |
 | Notification system | Alert dispenser when a new BillAndDispense prescription is added; alert reception when visit is completed |
 | Password reset / user management | Self-service password change; admin can reset staff passwords |
 | Patient portal | Patients view their own visit history, invoices, prescriptions |
