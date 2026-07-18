@@ -11,6 +11,7 @@ using Utano.Module.Core.Services;
 using Utano.Module.Identity.Configuration;
 using Utano.Module.Files.Configuration;
 using Utano.Module.Inventory.Configuration;
+using Utano.Module.Notifications.Configuration;
 using Utano.Module.Patients.Configuration;
 
 namespace Utano.API.Configuration;
@@ -45,6 +46,7 @@ public static class AppConfiguration
         builder.Services.AddInventoryModule(builder.Configuration);
         builder.Services.AddBillingModule(builder.Configuration);
         builder.Services.AddFilesModule(builder.Configuration);
+        builder.Services.AddNotificationsModule(builder.Configuration);
 
         builder.Services.AddControllers()
             .AddJsonOptions(options =>
@@ -107,6 +109,7 @@ public static class AppConfiguration
         app.ConfigureInventoryModule();
         app.ConfigureBillingModule();
         app.ConfigureFilesModule();
+        app.ConfigureNotificationsModule();
 
         return app;
     }
