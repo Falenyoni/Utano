@@ -12,6 +12,7 @@ COPY src/Modules/Utano.Module.Billing/Utano.Module.Billing.csproj               
 COPY src/Modules/Utano.Module.ClinicalNotes/Utano.Module.ClinicalNotes.csproj         src/Modules/Utano.Module.ClinicalNotes/
 COPY src/Modules/Utano.Module.Doctors/Utano.Module.Doctors.csproj                     src/Modules/Utano.Module.Doctors/
 COPY src/Modules/Utano.Module.Inventory/Utano.Module.Inventory.csproj                 src/Modules/Utano.Module.Inventory/
+COPY src/Modules/Utano.Module.Files/Utano.Module.Files.csproj                         src/Modules/Utano.Module.Files/
 
 RUN dotnet restore src/Utano.API/Utano.API.csproj
 
