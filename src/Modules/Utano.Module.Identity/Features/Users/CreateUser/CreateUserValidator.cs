@@ -1,5 +1,5 @@
 using FluentValidation;
-using Utano.Module.Identity.Domain.Enums;
+using Utano.Module.Core.Modules;
 
 namespace Utano.Module.Identity.Features.Users.CreateUser;
 
@@ -13,7 +13,7 @@ public class CreateUserValidator : AbstractValidator<CreateUserCommand>
         RuleFor(x => x.Password).NotEmpty().MinimumLength(8)
             .WithMessage("Password must be at least 8 characters.");
         RuleFor(x => x.Role).NotEmpty()
-            .Must(r => Enum.TryParse<UserRole>(r, true, out _))
-            .WithMessage("Invalid role. Must be Admin, Doctor, Receptionist or Billing.");
+            .Must(r => SystemRoles.All.Contains(r, StringComparer.OrdinalIgnoreCase))
+            .WithMessage($"Invalid role. Must be one of: {string.Join(", ", SystemRoles.All)}.");
     }
 }

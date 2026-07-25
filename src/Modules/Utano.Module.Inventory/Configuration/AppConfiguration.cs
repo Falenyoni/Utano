@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Utano.Module.Core.Modules;
 using Utano.Module.Core.Services;
 using Utano.Module.Inventory.DatabaseMappings;
 using Utano.Module.Inventory.Infrastructure;
@@ -24,6 +25,7 @@ public static class AppConfiguration
         services.AddValidatorsFromAssembly(typeof(AppConfiguration).Assembly);
 
         services.AddScoped<IInventoryService, InventoryService>();
+        services.AddSingleton<IModuleDescriptor, InventoryModuleDescriptor>();
 
         return services;
     }

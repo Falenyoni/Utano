@@ -1,6 +1,6 @@
 using MediatR;
+using Utano.Module.Core.Modules;
 using Utano.Module.Core.Services;
-using Utano.Module.Identity.Domain.Enums;
 using Utano.Module.Identity.Domain.Interfaces;
 
 namespace Utano.Module.Identity.Features.Users.GetDoctors;
@@ -14,9 +14,9 @@ public class GetDoctorsHandler(
         GetDoctorsQuery query, CancellationToken cancellationToken)
     {
         var doctors = await readRepository.GetByRoleAsync(
-            currentUserService.PracticeId, UserRole.Doctor, cancellationToken);
+            currentUserService.PracticeId, SystemRoles.Doctor, cancellationToken);
         var nurses = await readRepository.GetByRoleAsync(
-            currentUserService.PracticeId, UserRole.Nurse, cancellationToken);
+            currentUserService.PracticeId, SystemRoles.Nurse, cancellationToken);
 
         return doctors.Concat(nurses)
             .OrderBy(u => u.FullName)

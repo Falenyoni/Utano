@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Utano.Module.Billing.DatabaseMappings;
 using Utano.Module.Billing.Infrastructure;
+using Utano.Module.Core.Modules;
 using Utano.Module.Core.Services;
 
 namespace Utano.Module.Billing.Configuration;
@@ -25,6 +26,7 @@ public static class AppConfiguration
 
         services.AddScoped<IBillingService, BillingService>();
         services.AddScoped<IFiscalDevice, NullFiscalDevice>();
+        services.AddSingleton<IModuleDescriptor, BillingModuleDescriptor>();
 
         return services;
     }

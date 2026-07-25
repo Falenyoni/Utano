@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Utano.Module.ClinicalNotes.DatabaseMappings;
+using Utano.Module.Core.Modules;
 using Utano.Module.ClinicalNotes.Domain.Interfaces;
 using Utano.Module.ClinicalNotes.Infrastructure;
 using Utano.Module.ClinicalNotes.Infrastructure.Repositories;
@@ -28,6 +29,7 @@ public static class AppConfiguration
         services.AddScoped<IVisitReadRepository, VisitReadRepository>();
         services.AddScoped<IVisitWriteRepository, VisitWriteRepository>();
         services.AddScoped<IAuditService, AuditService>();
+        services.AddSingleton<IModuleDescriptor, ClinicalNotesModuleDescriptor>();
 
         return services;
     }

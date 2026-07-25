@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Utano.Module.Identity.DatabaseMappings;
 using Utano.Module.Identity.Domain.Entities;
-using Utano.Module.Identity.Domain.Enums;
 using Utano.Module.Identity.Domain.Interfaces;
 using Utano.Module.Identity.Domain.ValueObjects;
 
@@ -51,7 +50,7 @@ public class UserReadRepository(IdentityDbContext context) : IUserReadRepository
             .AnyAsync(u => u.PracticeId == practiceId && u.Email == emailVO, cancellationToken);
     }
 
-    public async Task<IReadOnlyList<User>> GetByRoleAsync(Guid practiceId, UserRole role,
+    public async Task<IReadOnlyList<User>> GetByRoleAsync(Guid practiceId, string role,
         CancellationToken cancellationToken = default)
     {
         return await context.Users

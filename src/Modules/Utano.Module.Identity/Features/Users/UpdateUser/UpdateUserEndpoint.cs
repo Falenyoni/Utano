@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using Utano.Module.Core.Exceptions;
+using Utano.Module.Core.Modules;
 using Utano.Module.Core.Services;
-using Utano.Module.Identity.Domain.Enums;
 using Utano.Module.Identity.Domain.Interfaces;
 
 namespace Utano.Module.Identity.Features.Users.UpdateUser;
@@ -53,10 +53,10 @@ public class UpdateUserHandler(
         var user = await readRepository.GetByIdAsync(cmd.Id, ct);
         if (user is null || user.PracticeId != currentUser.PracticeId) return false;
 
-        if (!Enum.TryParse<UserRole>(cmd.Role, ignoreCase: true, out var role))
+        if (!SystemRoles.All.Contains(cmd.Role, StringComparer.OrdinalIgnoreCase))
             throw new UtanoDomainException($"Invalid role: {cmd.Role}");
 
-        user.Update(cmd.FirstName, cmd.LastName, role);
+        user.Update(cmd.FirstName, cmd.LastName, cmd.Role);
         await writeRepository.UpdateAsync(user, ct);
         return true;
     }

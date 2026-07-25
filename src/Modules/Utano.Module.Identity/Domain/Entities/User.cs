@@ -16,7 +16,7 @@ public class User : AggregateRoot
     public string LastName { get; private set; } = null!;
     public Email Email { get; private set; } = null!;
     public string PasswordHash { get; private set; } = null!;
-    public UserRole Role { get; private set; }
+    public string Role { get; private set; } = null!;
     public UserStatus Status { get; private set; }
 
     public string FullName => $"{FirstName} {LastName}";
@@ -24,7 +24,7 @@ public class User : AggregateRoot
     public IReadOnlyCollection<UserRoleAssignment> RoleAssignments => _roleAssignments.AsReadOnly();
 
     public static User Create(Guid practiceId, string firstName, string lastName,
-        string email, string passwordHash, UserRole role)
+        string email, string passwordHash, string role)
     {
         if (string.IsNullOrWhiteSpace(firstName))
             throw new UtanoDomainException("First name is required.");
@@ -52,7 +52,6 @@ public class User : AggregateRoot
 
     public RefreshToken AddRefreshToken(string token, int expiryDays)
     {
-        // revoke all existing active tokens before issuing new one
         foreach (var t in _refreshTokens.Where(t => t.IsActive))
             t.Revoke();
 
@@ -71,7 +70,7 @@ public class User : AggregateRoot
         return true;
     }
 
-    public void Update(string firstName, string lastName, UserRole role)
+    public void Update(string firstName, string lastName, string role)
     {
         if (string.IsNullOrWhiteSpace(firstName))
             throw new UtanoDomainException("First name is required.");

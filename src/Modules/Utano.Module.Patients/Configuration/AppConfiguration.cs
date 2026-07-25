@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Utano.Module.Core.Modules;
 using Utano.Module.Core.Services;
 using Utano.Module.Patients.DatabaseMappings;
 using Utano.Module.Patients.Domain.Interfaces;
@@ -29,6 +30,7 @@ public static class AppConfiguration
         services.AddScoped<IPatientWriteRepository, PatientWriteRepository>();
         services.AddScoped<IMedicalAidRepository, MedicalAidRepository>();
         services.AddScoped<IPatientStatusChecker, PatientStatusChecker>();
+        services.AddSingleton<IModuleDescriptor, PatientsModuleDescriptor>();
 
         return services;
     }

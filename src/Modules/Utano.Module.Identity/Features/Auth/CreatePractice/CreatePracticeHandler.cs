@@ -4,7 +4,6 @@ using Utano.Module.Core.Exceptions;
 using Utano.Module.Core.Modules;
 using Utano.Module.Identity.DatabaseMappings;
 using Utano.Module.Identity.Domain.Entities;
-using Utano.Module.Identity.Domain.Enums;
 using Utano.Module.Identity.Domain.Interfaces;
 
 namespace Utano.Module.Identity.Features.Auth.CreatePractice;
@@ -39,15 +38,15 @@ public class CreatePracticeHandler(
             command.AdminLastName,
             command.AdminEmail,
             passwordHash,
-            UserRole.Admin);
+            SystemRoles.Admin);
 
         await userWriteRepository.AddAsync(admin, cancellationToken);
 
-        var adminRole        = SeedRole(practice.Id, "Admin",        "Full system access");
-        var doctorRole       = SeedRole(practice.Id, "Doctor",       "Patient care and clinical documentation");
-        var nurseRole        = SeedRole(practice.Id, "Nurse",        "Patient care and appointment management");
-        var receptionistRole = SeedRole(practice.Id, "Receptionist", "Patient registration and scheduling");
-        var billingRole      = SeedRole(practice.Id, "Billing",      "Financial management and reporting");
+        var adminRole        = SeedRole(practice.Id, SystemRoles.Admin,        "Full system access");
+        var doctorRole       = SeedRole(practice.Id, SystemRoles.Doctor,       "Patient care and clinical documentation");
+        var nurseRole        = SeedRole(practice.Id, SystemRoles.Nurse,        "Patient care and appointment management");
+        var receptionistRole = SeedRole(practice.Id, SystemRoles.Receptionist, "Patient registration and scheduling");
+        var billingRole      = SeedRole(practice.Id, SystemRoles.Billing,      "Financial management and reporting");
 
         db.Roles.AddRange([adminRole, doctorRole, nurseRole, receptionistRole, billingRole]);
         db.UserRoles.Add(new UserRoleAssignment(admin.Id, adminRole.Id));

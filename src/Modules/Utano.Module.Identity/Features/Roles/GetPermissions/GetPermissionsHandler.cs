@@ -1,10 +1,19 @@
 using MediatR;
-using Utano.Module.Identity.Domain.Constants;
+using Utano.Module.Core.Modules;
 
 namespace Utano.Module.Identity.Features.Roles.GetPermissions;
 
-public class GetPermissionsHandler : IRequestHandler<GetPermissionsQuery, IReadOnlyList<string>>
+public class GetPermissionsHandler(IEnumerable<IModuleDescriptor> moduleDescriptors)
+    : IRequestHandler<GetPermissionsQuery, IReadOnlyList<string>>
 {
     public Task<IReadOnlyList<string>> Handle(GetPermissionsQuery query, CancellationToken cancellationToken)
-        => Task.FromResult(Permissions.All);
+    {
+        var all = moduleDescriptors
+            .SelectMany(m => m.AllPermissions)
+            .Distinct()
+            .OrderBy(p => p)
+            .ToList();
+
+        return Task.FromResult<IReadOnlyList<string>>(all);
+    }
 }
