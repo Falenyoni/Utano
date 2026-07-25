@@ -8,6 +8,7 @@ public static class Permissions
         public const string Create = "patients.create";
         public const string Edit   = "patients.edit";
         public const string Delete = "patients.delete";
+        public const string Refer  = "patients.refer";
     }
 
     public static class Appointments
@@ -49,7 +50,7 @@ public static class Permissions
 
     public static readonly IReadOnlyList<string> All =
     [
-        Patients.View, Patients.Create, Patients.Edit, Patients.Delete,
+        Patients.View, Patients.Create, Patients.Edit, Patients.Delete, Patients.Refer,
         Appointments.View, Appointments.Create, Appointments.Edit, Appointments.Cancel,
         ClinicalNotes.View, ClinicalNotes.Create, ClinicalNotes.Edit,
         Inventory.View, Inventory.Manage,
@@ -62,7 +63,7 @@ public static class Permissions
 
     public static readonly IReadOnlyList<string> DoctorPermissions =
     [
-        Patients.View,
+        Patients.View, Patients.Refer,
         Appointments.View, Appointments.Create, Appointments.Edit,
         ClinicalNotes.View, ClinicalNotes.Create, ClinicalNotes.Edit,
         Billing.View,
@@ -71,7 +72,7 @@ public static class Permissions
 
     public static readonly IReadOnlyList<string> NursePermissions =
     [
-        Patients.View,
+        Patients.View, Patients.Refer,
         Appointments.View, Appointments.Create,
         ClinicalNotes.View, ClinicalNotes.Create,
         Inventory.View,

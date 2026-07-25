@@ -1,8 +1,8 @@
 using FluentValidation;
 using MediatR;
 using Utano.Module.Core.Exceptions;
+using Utano.Module.Core.Modules;
 using Utano.Module.Identity.DatabaseMappings;
-using Utano.Module.Identity.Domain.Constants;
 using Utano.Module.Identity.Domain.Entities;
 using Utano.Module.Identity.Domain.Enums;
 using Utano.Module.Identity.Domain.Interfaces;
@@ -14,6 +14,7 @@ public class CreatePracticeHandler(
     IUserWriteRepository userWriteRepository,
     IPasswordService passwordService,
     IdentityDbContext db,
+    IEnumerable<IModuleDescriptor> moduleDescriptors,
     IValidator<CreatePracticeCommand> validator)
     : IRequestHandler<CreatePracticeCommand, CreatePracticeResponse>
 {
@@ -42,11 +43,11 @@ public class CreatePracticeHandler(
 
         await userWriteRepository.AddAsync(admin, cancellationToken);
 
-        var adminRole = SeedRole(practice.Id, "Admin", "Full system access", Permissions.AdminPermissions);
-        var doctorRole = SeedRole(practice.Id, "Doctor", "Patient care and clinical documentation", Permissions.DoctorPermissions);
-        var nurseRole = SeedRole(practice.Id, "Nurse", "Patient care and appointment management", Permissions.NursePermissions);
-        var receptionistRole = SeedRole(practice.Id, "Receptionist", "Patient registration and scheduling", Permissions.ReceptionistPermissions);
-        var billingRole = SeedRole(practice.Id, "Billing", "Financial management and reporting", Permissions.BillingPermissions);
+        var adminRole        = SeedRole(practice.Id, "Admin",        "Full system access");
+        var doctorRole       = SeedRole(practice.Id, "Doctor",       "Patient care and clinical documentation");
+        var nurseRole        = SeedRole(practice.Id, "Nurse",        "Patient care and appointment management");
+        var receptionistRole = SeedRole(practice.Id, "Receptionist", "Patient registration and scheduling");
+        var billingRole      = SeedRole(practice.Id, "Billing",      "Financial management and reporting");
 
         db.Roles.AddRange([adminRole, doctorRole, nurseRole, receptionistRole, billingRole]);
         db.UserRoles.Add(new UserRoleAssignment(admin.Id, adminRole.Id));
@@ -55,8 +56,13 @@ public class CreatePracticeHandler(
         return new CreatePracticeResponse(practice.Id, practice.Name, admin.Id, admin.Email.Value);
     }
 
-    private static Role SeedRole(Guid practiceId, string name, string description, IReadOnlyList<string> permissions)
+    private Role SeedRole(Guid practiceId, string name, string description)
     {
+        var permissions = moduleDescriptors
+            .SelectMany(m => m.GetPermissionsForRole(name))
+            .Distinct()
+            .ToList();
+
         var role = Role.Create(practiceId, name, description, isSystem: true);
         role.SetPermissions(permissions);
         return role;

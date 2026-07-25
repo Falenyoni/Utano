@@ -1,7 +1,9 @@
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Utano.Module.Core.Exceptions;
 using Utano.Module.Core.Services;
+using Utano.Module.Identity.DatabaseMappings;
 using Utano.Module.Identity.Domain.Entities;
 using Utano.Module.Identity.Domain.Enums;
 using Utano.Module.Identity.Domain.Interfaces;
@@ -13,6 +15,7 @@ public class CreateUserHandler(
     IUserReadRepository readRepository,
     IPasswordService passwordService,
     ICurrentUserService currentUserService,
+    IdentityDbContext db,
     IValidator<CreateUserCommand> validator)
     : IRequestHandler<CreateUserCommand, CreateUserResponse>
 {
@@ -22,7 +25,8 @@ public class CreateUserHandler(
         if (!validation.IsValid)
             throw new UtanoDomainException(validation.Errors[0].ErrorMessage);
 
-        var emailExists = await readRepository.EmailExistsAsync(command.Email, cancellationToken);
+        var emailExists = await readRepository.EmailExistsInPracticeAsync(
+            command.Email, currentUserService.PracticeId, cancellationToken);
         if (emailExists)
             throw new UtanoDomainException("A user with this email already exists.");
 
@@ -38,6 +42,18 @@ public class CreateUserHandler(
             role);
 
         await writeRepository.AddAsync(user, cancellationToken);
+
+        var systemRole = await db.Roles.FirstOrDefaultAsync(
+            r => r.PracticeId == currentUserService.PracticeId
+              && r.Name == command.Role
+              && r.IsSystem,
+            cancellationToken);
+
+        if (systemRole is not null)
+        {
+            db.UserRoles.Add(new UserRoleAssignment(user.Id, systemRole.Id));
+            await db.SaveChangesAsync(cancellationToken);
+        }
 
         return new CreateUserResponse(
             user.Id,

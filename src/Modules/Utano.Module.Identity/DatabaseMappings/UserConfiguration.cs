@@ -51,6 +51,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Navigation(u => u.RoleAssignments)
             .UsePropertyAccessMode(PropertyAccessMode.Field);
 
-        builder.HasIndex(u => u.Email).IsUnique();
+        builder.HasIndex(u => new { u.PracticeId, u.Email }).IsUnique();
     }
 }

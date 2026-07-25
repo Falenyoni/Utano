@@ -42,6 +42,15 @@ public class UserReadRepository(IdentityDbContext context) : IUserReadRepository
             .AnyAsync(u => u.Email == emailVO, cancellationToken);
     }
 
+    public async Task<bool> EmailExistsInPracticeAsync(string email, Guid practiceId,
+        CancellationToken cancellationToken = default)
+    {
+        var emailVO = Email.Create(email);
+        return await context.Users
+            .AsNoTracking()
+            .AnyAsync(u => u.PracticeId == practiceId && u.Email == emailVO, cancellationToken);
+    }
+
     public async Task<IReadOnlyList<User>> GetByRoleAsync(Guid practiceId, UserRole role,
         CancellationToken cancellationToken = default)
     {
