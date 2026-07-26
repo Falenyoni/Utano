@@ -2,6 +2,7 @@ using FluentValidation;
 using MediatR;
 using Utano.Module.Core.Exceptions;
 using Utano.Module.Core.Modules;
+using Utano.Module.Identity.Domain.Entities;
 using Utano.Module.Identity.DatabaseMappings;
 using Utano.Module.Identity.Domain.Entities;
 using Utano.Module.Identity.Domain.Interfaces;
@@ -50,6 +51,13 @@ public class CreatePracticeHandler(
 
         db.Roles.AddRange([adminRole, doctorRole, nurseRole, receptionistRole, billingRole]);
         db.UserRoles.Add(new UserRoleAssignment(admin.Id, adminRole.Id));
+
+        var features = moduleDescriptors
+            .Select(m => m.FeatureKey)
+            .Distinct()
+            .Select(key => PracticeFeature.Create(practice.Id, key));
+        db.PracticeFeatures.AddRange(features);
+
         await db.SaveChangesAsync(cancellationToken);
 
         return new CreatePracticeResponse(practice.Id, practice.Name, admin.Id, admin.Email.Value);

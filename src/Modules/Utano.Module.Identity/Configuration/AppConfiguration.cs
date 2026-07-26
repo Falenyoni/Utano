@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Utano.Module.Core.Modules;
+using Utano.Module.Core.Services;
 using Utano.Module.Identity.DatabaseMappings;
 using Utano.Module.Identity.Domain.Interfaces;
 using Utano.Module.Identity.Infrastructure.Repositories;
@@ -54,6 +55,7 @@ public static class AppConfiguration
         services.AddScoped<IPracticeRepository, PracticeRepository>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IPasswordService, PasswordService>();
+        services.AddScoped<IFeatureService, FeatureService>();
         services.AddSingleton<IModuleDescriptor, UtanoCoreModuleDescriptor>();
 
         return services;

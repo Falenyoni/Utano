@@ -24,6 +24,16 @@ public class PracticeEndpoints(ISender sender) : ControllerBase
         return result is null ? NotFound() : Ok(result);
     }
 
+    [HttpGet("features")]
+    [ProducesResponseType(typeof(IReadOnlyList<string>), (int)HttpStatusCode.OK)]
+    [EndpointSummary("Get enabled feature keys for the current practice")]
+    [Tags("Identity Module")]
+    public async Task<IActionResult> GetFeatures(CancellationToken ct)
+    {
+        var result = await sender.Send(new GetPracticeFeaturesQuery(), ct);
+        return Ok(result);
+    }
+
     [HttpPut]
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -52,6 +62,19 @@ public class GetPracticeHandler(IPracticeRepository repository, ICurrentUserServ
         if (practice is null) return null;
         return new PracticeResponse(practice.Id, practice.Name, practice.ContactEmail, practice.ContactPhone, practice.PhysicalAddress, practice.HasDispensary, practice.AdhozNumber, practice.BpNumber, practice.LogoBase64);
     }
+}
+
+// ─── Update ─────────────────────────────────────────────────────────────────
+
+// ─── GetFeatures ────────────────────────────────────────────────────────────
+
+public record GetPracticeFeaturesQuery : IRequest<IReadOnlyList<string>>;
+
+public class GetPracticeFeaturesHandler(IFeatureService featureService, ICurrentUserService currentUser)
+    : IRequestHandler<GetPracticeFeaturesQuery, IReadOnlyList<string>>
+{
+    public Task<IReadOnlyList<string>> Handle(GetPracticeFeaturesQuery _, CancellationToken ct) =>
+        featureService.GetEnabledFeaturesAsync(currentUser.PracticeId, ct);
 }
 
 // ─── Update ─────────────────────────────────────────────────────────────────

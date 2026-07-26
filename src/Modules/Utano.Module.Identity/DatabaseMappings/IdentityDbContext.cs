@@ -11,6 +11,7 @@ public class IdentityDbContext(DbContextOptions<IdentityDbContext> options) : Db
     public DbSet<Role> Roles { get; set; }
     public DbSet<RolePermission> RolePermissions { get; set; }
     public DbSet<UserRoleAssignment> UserRoles { get; set; }
+    public DbSet<PracticeFeature> PracticeFeatures { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
