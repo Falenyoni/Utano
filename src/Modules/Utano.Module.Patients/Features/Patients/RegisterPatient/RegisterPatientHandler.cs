@@ -41,6 +41,9 @@ public class RegisterPatientHandler(
             gender,
             nationalId);
 
+        if (!string.IsNullOrWhiteSpace(command.Occupation))
+            patient.SetOccupation(command.Occupation);
+
         foreach (var c in command.Contacts)
             patient.AddContact(c.Type, c.PhoneNumber, c.Email, c.IsPrimary);
 

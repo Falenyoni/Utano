@@ -19,6 +19,7 @@ public class Patient : AggregateRoot
     public NationalId NationalId { get; private set; }
     public PatientStatus Status { get; private set; }
     public string? Notes { get; private set; }
+    public string? Occupation { get; private set; }
     public BloodGroup? BloodGroup { get; private set; }
     public string? Allergies { get; private set; }
     public string? ChronicConditions { get; private set; }
@@ -55,13 +56,20 @@ public class Patient : AggregateRoot
         };
     }
 
-    public void UpdateDetails(FullName fullName, string? notes = null)
+    public void UpdateDetails(FullName fullName, string? notes = null, string? occupation = null)
     {
         if (Status == PatientStatus.Inactive)
             throw new UtanoDomainException("Cannot update an inactive patient.");
 
         FullName = fullName;
         Notes = notes;
+        Occupation = string.IsNullOrWhiteSpace(occupation) ? null : occupation.Trim();
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void SetOccupation(string? occupation)
+    {
+        Occupation = string.IsNullOrWhiteSpace(occupation) ? null : occupation.Trim();
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 

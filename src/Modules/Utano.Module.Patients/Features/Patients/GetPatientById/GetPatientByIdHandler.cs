@@ -33,6 +33,7 @@ public class GetPatientByIdHandler(
             patient.Gender.ToString(),
             patient.Status.ToString(),
             patient.Notes,
+            patient.Occupation,
             patient.BloodGroup?.ToString(),
             patient.Allergies,
             patient.ChronicConditions,

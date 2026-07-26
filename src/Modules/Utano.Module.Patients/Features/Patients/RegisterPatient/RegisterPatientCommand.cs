@@ -10,6 +10,7 @@ public record RegisterPatientCommand(
     DateOnly DateOfBirth,
     string Gender,
     string NationalId,
+    string? Occupation,
     List<RegisterPatientContactRequest> Contacts,
     List<RegisterPatientAddressRequest>? Addresses,
     Guid? MedicalAidId,

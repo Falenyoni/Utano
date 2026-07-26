@@ -24,7 +24,7 @@ public class UpdatePatientHandler(
             return false;
 
         var fullName = FullName.Create(command.FirstName, command.LastName, command.MiddleName ?? "");
-        patient.UpdateDetails(fullName, command.Notes);
+        patient.UpdateDetails(fullName, command.Notes, command.Occupation);
         patient.UpdateMedicalAid(command.MedicalAidId, command.MedicalAidNumber);
 
         if (command.BloodGroup is not null || command.Allergies is not null || command.ChronicConditions is not null)

@@ -41,6 +41,7 @@ public class PatientConfiguration : IEntityTypeConfiguration<Patient>
             .IsRequired();
 
         builder.Property(p => p.Notes).HasMaxLength(2000);
+        builder.Property(p => p.Occupation).HasMaxLength(100);
         builder.Property(p => p.BloodGroup).HasConversion<string>().HasMaxLength(20);
         builder.Property(p => p.Allergies).HasMaxLength(1000);
         builder.Property(p => p.ChronicConditions).HasMaxLength(1000);

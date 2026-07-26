@@ -11,6 +11,7 @@ public record GetPatientByIdResponse(
     string Gender,
     string Status,
     string? Notes,
+    string? Occupation,
     string? BloodGroup,
     string? Allergies,
     string? ChronicConditions,
