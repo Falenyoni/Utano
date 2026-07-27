@@ -105,4 +105,12 @@ public class User : AggregateRoot
         Status = UserStatus.Inactive;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
+
+    public void UpdatePassword(string newPasswordHash)
+    {
+        if (string.IsNullOrWhiteSpace(newPasswordHash))
+            throw new UtanoDomainException("Password hash is required.");
+        PasswordHash = newPasswordHash;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
 }
