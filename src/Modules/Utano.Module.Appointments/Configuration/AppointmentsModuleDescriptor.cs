@@ -16,6 +16,7 @@ internal sealed class AppointmentsModuleDescriptor : IModuleDescriptor
         SystemRoles.Nurse        => [View, Create],
         SystemRoles.Receptionist => [View, Create, Edit, Cancel],
         SystemRoles.Billing      => [View],
+        SystemRoles.Triage       => [View, Create],
         _                        => []
     };
 

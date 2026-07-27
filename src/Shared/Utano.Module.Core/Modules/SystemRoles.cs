@@ -7,7 +7,8 @@ public static class SystemRoles
     public const string Nurse        = "Nurse";
     public const string Receptionist = "Receptionist";
     public const string Billing      = "Billing";
+    public const string Triage       = "Triage";
 
     public static readonly IReadOnlyList<string> All =
-        [Admin, Doctor, Nurse, Receptionist, Billing];
+        [Admin, Doctor, Nurse, Receptionist, Billing, Triage];
 }

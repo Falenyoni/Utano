@@ -11,10 +11,11 @@ internal sealed class ClinicalNotesModuleDescriptor : IModuleDescriptor
 
     public IReadOnlyList<string> GetPermissionsForRole(string roleName) => roleName switch
     {
-        SystemRoles.Admin  => [View, Create, Edit, DispensaryView, DispensaryManage],
-        SystemRoles.Doctor => [View, Create, Edit, DispensaryView],
-        SystemRoles.Nurse  => [View, Create, DispensaryView, DispensaryManage],
-        _                  => []
+        SystemRoles.Admin   => [View, Create, Edit, DispensaryView, DispensaryManage],
+        SystemRoles.Doctor  => [View, Create, Edit, DispensaryView],
+        SystemRoles.Nurse   => [View, Create, DispensaryView, DispensaryManage],
+        SystemRoles.Triage  => [View, Create],
+        _                   => []
     };
 
     public const string View             = "clinical_notes.view";

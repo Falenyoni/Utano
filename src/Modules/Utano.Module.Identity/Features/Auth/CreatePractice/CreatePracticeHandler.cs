@@ -48,8 +48,9 @@ public class CreatePracticeHandler(
         var nurseRole        = SeedRole(practice.Id, SystemRoles.Nurse,        "Patient care and appointment management");
         var receptionistRole = SeedRole(practice.Id, SystemRoles.Receptionist, "Patient registration and scheduling");
         var billingRole      = SeedRole(practice.Id, SystemRoles.Billing,      "Financial management and reporting");
+        var triageRole       = SeedRole(practice.Id, SystemRoles.Triage,       "Patient triage and initial assessment");
 
-        db.Roles.AddRange([adminRole, doctorRole, nurseRole, receptionistRole, billingRole]);
+        db.Roles.AddRange([adminRole, doctorRole, nurseRole, receptionistRole, billingRole, triageRole]);
         db.UserRoles.Add(new UserRoleAssignment(admin.Id, adminRole.Id));
 
         var features = moduleDescriptors

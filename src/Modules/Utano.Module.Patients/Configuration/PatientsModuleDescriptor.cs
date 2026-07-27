@@ -16,6 +16,7 @@ internal sealed class PatientsModuleDescriptor : IModuleDescriptor
         SystemRoles.Nurse        => [View, Refer],
         SystemRoles.Receptionist => [View, Create],
         SystemRoles.Billing      => [View],
+        SystemRoles.Triage       => [View, Create],
         _                        => []
     };
 
