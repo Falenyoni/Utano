@@ -46,7 +46,7 @@ public class Practice : AggregateRoot
 
     public void StartTrial(int days = 30)
     {
-        SubscriptionTier   = Entities.SubscriptionTier.Starter;
+        SubscriptionTier   = Entities.SubscriptionTier.Professional;
         SubscriptionStatus = Entities.SubscriptionStatus.Trial;
         TrialEndsAt        = DateTimeOffset.UtcNow.AddDays(days);
         UpdatedAt          = DateTimeOffset.UtcNow;

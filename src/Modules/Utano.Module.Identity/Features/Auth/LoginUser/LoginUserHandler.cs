@@ -5,6 +5,7 @@ using Utano.Module.Core.Exceptions;
 using Utano.Module.Identity.Configuration;
 using Utano.Module.Identity.Domain.Enums;
 using Utano.Module.Identity.Domain.Interfaces;
+using Utano.Module.Identity.Features.Admin;
 
 namespace Utano.Module.Identity.Features.Auth.LoginUser;
 
@@ -15,7 +16,8 @@ public class LoginUserHandler(
     IPasswordService passwordService,
     ITokenService tokenService,
     IOptions<JwtSettings> jwtSettings,
-    IValidator<LoginUserCommand> validator)
+    IValidator<LoginUserCommand> validator,
+    ISender sender)
     : IRequestHandler<LoginUserCommand, LoginUserResponse>
 {
     public async Task<LoginUserResponse> Handle(
@@ -34,6 +36,21 @@ public class LoginUserHandler(
             throw new UtanoDomainException("Your account is not active. Contact your administrator.");
 
         var practice = await practiceRepository.GetByIdAsync(user.PracticeId, cancellationToken);
+
+        if (practice is not null &&
+            practice.SubscriptionStatus == Domain.Entities.SubscriptionStatus.Trial &&
+            practice.TrialEndsAt.HasValue &&
+            practice.TrialEndsAt.Value < DateTimeOffset.UtcNow)
+        {
+            await sender.Send(
+                new SetPracticeSubscriptionCommand(
+                    practice.Id,
+                    Domain.Entities.SubscriptionTier.Starter,
+                    Domain.Entities.SubscriptionStatus.Active,
+                    null),
+                cancellationToken);
+            practice = await practiceRepository.GetByIdAsync(user.PracticeId, cancellationToken);
+        }
 
         var roles = user.RoleAssignments
             .Where(ra => ra.Role?.IsActive == true)
