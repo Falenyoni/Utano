@@ -29,6 +29,8 @@ public class CreatePracticeHandler(
             command.Name, command.ContactEmail,
             command.ContactPhone, command.PhysicalAddress);
 
+        practice.StartTrial(30);
+
         await practiceRepository.AddAsync(practice, cancellationToken);
 
         var passwordHash = passwordService.Hash(command.AdminPassword);
@@ -53,10 +55,8 @@ public class CreatePracticeHandler(
         db.Roles.AddRange([adminRole, doctorRole, nurseRole, receptionistRole, billingRole, triageRole]);
         db.UserRoles.Add(new UserRoleAssignment(admin.Id, adminRole.Id));
 
-        var features = moduleDescriptors
-            .Select(m => m.FeatureKey)
-            .Distinct()
-            .Select(key => PracticeFeature.Create(practice.Id, key));
+        // Trial starts with full Professional access so practices see all features
+        var features = SeedFeaturesForTier(practice.Id, Domain.Entities.SubscriptionTier.Professional);
         db.PracticeFeatures.AddRange(features);
 
         await db.SaveChangesAsync(cancellationToken);
@@ -74,5 +74,18 @@ public class CreatePracticeHandler(
         var role = Role.Create(practiceId, name, description, isSystem: true);
         role.SetPermissions(permissions);
         return role;
+    }
+
+    internal IEnumerable<PracticeFeature> SeedFeaturesForTier(Guid practiceId, string tier)
+    {
+        var allowedPlans = tier == Domain.Entities.SubscriptionTier.Professional
+            ? new[] { "free", "professional" }
+            : new[] { "free" };
+
+        return moduleDescriptors
+            .Where(m => allowedPlans.Contains(m.Plan))
+            .Select(m => m.FeatureKey)
+            .Distinct()
+            .Select(key => PracticeFeature.Create(practiceId, key));
     }
 }

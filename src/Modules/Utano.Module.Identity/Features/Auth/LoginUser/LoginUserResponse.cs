@@ -12,6 +12,9 @@ public record LoginUserResponse(
     string? PrimaryColor,
     string? LogoBase64,
     bool HasDispensary,
+    string SubscriptionTier,
+    string SubscriptionStatus,
+    DateTimeOffset? TrialEndsAt,
     string AccessToken,
     string RefreshToken,
     DateTimeOffset ExpiresAt

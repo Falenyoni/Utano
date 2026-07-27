@@ -102,6 +102,7 @@ public static class AppConfiguration
         app.UseRouting();
         app.ConfigureIdentityModule();
         app.UseAuthorization();
+        app.UseMiddleware<SubscriptionMiddleware>();
         app.MapControllers();
         app.ConfigurePatientsModule();
         app.ConfigureAppointmentsModule();

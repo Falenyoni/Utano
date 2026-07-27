@@ -7,6 +7,8 @@ public class ApiKeyMiddleware(RequestDelegate next, IConfiguration configuration
     public async Task InvokeAsync(HttpContext context)
     {
         if (context.Request.Path.StartsWithSegments("/api/auth/setup",
+                StringComparison.OrdinalIgnoreCase) ||
+            context.Request.Path.StartsWithSegments("/api/admin",
                 StringComparison.OrdinalIgnoreCase))
         {
             var expectedKey = configuration["ApiKey"];

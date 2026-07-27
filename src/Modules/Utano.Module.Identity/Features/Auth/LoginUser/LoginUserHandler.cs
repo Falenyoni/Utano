@@ -63,6 +63,9 @@ public class LoginUserHandler(
             practice?.PrimaryColor,
             practice?.LogoBase64,
             practice?.HasDispensary ?? false,
+            practice?.SubscriptionTier ?? Domain.Entities.SubscriptionTier.Starter,
+            practice?.SubscriptionStatus ?? Domain.Entities.SubscriptionStatus.Trial,
+            practice?.TrialEndsAt,
             accessToken,
             refreshTokenValue,
             DateTimeOffset.UtcNow.AddMinutes(jwtSettings.Value.ExpiryMinutes));
