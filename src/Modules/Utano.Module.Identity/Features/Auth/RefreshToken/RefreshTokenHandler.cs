@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.Extensions.Options;
 using Utano.Module.Core.Exceptions;
 using Utano.Module.Identity.Configuration;
+using Utano.Module.Identity.Domain.Entities;
 using Utano.Module.Identity.Domain.Interfaces;
 
 namespace Utano.Module.Identity.Features.Auth.RefreshToken;
@@ -9,6 +10,7 @@ namespace Utano.Module.Identity.Features.Auth.RefreshToken;
 public class RefreshTokenHandler(
     IUserReadRepository readRepository,
     IUserWriteRepository writeRepository,
+    IPracticeRepository practiceRepository,
     ITokenService tokenService,
     IOptions<JwtSettings> jwtSettings)
     : IRequestHandler<RefreshTokenCommand, RefreshTokenResponse>
@@ -32,7 +34,9 @@ public class RefreshTokenHandler(
             .Distinct()
             .ToList();
 
-        var newAccessToken = tokenService.GenerateJwtToken(user, permissions);
+        var practice = await practiceRepository.GetByIdAsync(user.PracticeId, cancellationToken);
+        var subscriptionStatus = practice?.SubscriptionStatus ?? SubscriptionStatus.Trial;
+        var newAccessToken = tokenService.GenerateJwtToken(user, permissions, subscriptionStatus);
         var newRefreshTokenValue = tokenService.GenerateRefreshToken();
 
         // Revoke all active tokens — they are tracked entities, EF detects the change

@@ -14,7 +14,7 @@ public class TokenService(IOptions<JwtSettings> jwtSettings) : ITokenService
 {
     private readonly JwtSettings _settings = jwtSettings.Value;
 
-    public string GenerateJwtToken(User user, IEnumerable<string> permissions)
+    public string GenerateJwtToken(User user, IEnumerable<string> permissions, string subscriptionStatus)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Secret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -26,6 +26,7 @@ public class TokenService(IOptions<JwtSettings> jwtSettings) : ITokenService
             new(ClaimTypes.Name, user.FullName),
             new(ClaimTypes.Role, user.Role.ToString()),
             new("PracticeId", user.PracticeId.ToString()),
+            new("SubscriptionStatus", subscriptionStatus),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         };
 

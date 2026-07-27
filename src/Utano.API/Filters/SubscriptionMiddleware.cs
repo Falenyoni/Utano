@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using Utano.Module.Identity.DatabaseMappings;
 using Utano.Module.Identity.Domain.Entities;
 
 namespace Utano.API.Filters;
@@ -14,46 +12,27 @@ public class SubscriptionMiddleware(RequestDelegate next)
         "/swagger",
     ];
 
-    public async Task InvokeAsync(HttpContext context, IdentityDbContext db)
+    public async Task InvokeAsync(HttpContext context)
     {
         var path = context.Request.Path.Value ?? string.Empty;
 
         if (SkippedPrefixes.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase))
-            || !context.User.Identity?.IsAuthenticated == true)
+            || context.User.Identity?.IsAuthenticated != true)
         {
             await next(context);
             return;
         }
 
-        var practiceIdClaim = context.User.FindFirst("PracticeId")?.Value;
-        if (!Guid.TryParse(practiceIdClaim, out var practiceId))
+        var status = context.User.FindFirst("SubscriptionStatus")?.Value;
+
+        // No claim means old token — let it through, will be refreshed on next login
+        if (string.IsNullOrEmpty(status))
         {
             await next(context);
             return;
         }
 
-        var practice = await db.Practices
-            .AsNoTracking()
-            .Where(p => p.Id == practiceId)
-            .Select(p => new { p.SubscriptionStatus, p.TrialEndsAt, p.SubscriptionExpiresAt })
-            .FirstOrDefaultAsync(context.RequestAborted);
-
-        if (practice is null)
-        {
-            await next(context);
-            return;
-        }
-
-        var now = DateTimeOffset.UtcNow;
-
-        var isBlocked = practice.SubscriptionStatus switch
-        {
-            SubscriptionStatus.Cancelled => true,
-            SubscriptionStatus.PastDue   => true,
-            SubscriptionStatus.Trial     => !practice.TrialEndsAt.HasValue || practice.TrialEndsAt <= now,
-            SubscriptionStatus.Active    => practice.SubscriptionExpiresAt.HasValue && practice.SubscriptionExpiresAt <= now,
-            _                            => false
-        };
+        var isBlocked = status is SubscriptionStatus.Cancelled or SubscriptionStatus.PastDue;
 
         if (isBlocked)
         {
