@@ -26,6 +26,9 @@ public class Visit : AggregateRoot
     public int? PulseRate { get; private set; }
     public decimal? OxygenSaturation { get; private set; }
 
+    public int? PainScore { get; private set; }
+    public string? Priority { get; private set; }
+
     // Clinical
     public string? Department { get; private set; }
     public string? Specialty { get; private set; }
@@ -118,7 +121,9 @@ public class Visit : AggregateRoot
         decimal? weightKg, decimal? heightCm,
         decimal? temperatureCelsius, int? pulseRate,
         decimal? oxygenSaturation,
-        string? chiefComplaint)
+        string? chiefComplaint,
+        int? painScore = null,
+        string? priority = null)
     {
         if (Status == VisitStatus.Completed)
             throw new UtanoDomainException("Cannot triage a completed visit.");
@@ -131,6 +136,8 @@ public class Visit : AggregateRoot
         PulseRate = pulseRate;
         OxygenSaturation = oxygenSaturation;
         ChiefComplaint = chiefComplaint;
+        PainScore = painScore;
+        Priority = priority;
 
         if (Status == VisitStatus.InProgress)
             Status = VisitStatus.Triaged;

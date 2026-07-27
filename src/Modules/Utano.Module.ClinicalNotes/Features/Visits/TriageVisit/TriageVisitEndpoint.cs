@@ -23,7 +23,8 @@ public class TriageVisitEndpoint(ISender sender) : ControllerBase
         var ok = await sender.Send(new TriageVisitCommand(id,
             body.BloodPressureSystolic, body.BloodPressureDiastolic,
             body.WeightKg, body.HeightCm, body.TemperatureCelsius,
-            body.PulseRate, body.OxygenSaturation, body.ChiefComplaint), ct);
+            body.PulseRate, body.OxygenSaturation, body.ChiefComplaint,
+            body.PainScore, body.Priority), ct);
         return ok ? NoContent() : NotFound();
     }
 }
@@ -36,14 +37,17 @@ public record TriageVisitBody(
     decimal? TemperatureCelsius,
     int? PulseRate,
     decimal? OxygenSaturation,
-    string? ChiefComplaint);
+    string? ChiefComplaint,
+    int? PainScore,
+    string? Priority);
 
 public record TriageVisitCommand(
     Guid Id,
     int? BloodPressureSystolic, int? BloodPressureDiastolic,
     decimal? WeightKg, decimal? HeightCm,
     decimal? TemperatureCelsius, int? PulseRate, decimal? OxygenSaturation,
-    string? ChiefComplaint) : IRequest<bool>;
+    string? ChiefComplaint,
+    int? PainScore, string? Priority) : IRequest<bool>;
 
 public class TriageVisitHandler(
     IVisitReadRepository readRepository,
@@ -59,7 +63,8 @@ public class TriageVisitHandler(
         visit.Triage(
             cmd.BloodPressureSystolic, cmd.BloodPressureDiastolic,
             cmd.WeightKg, cmd.HeightCm, cmd.TemperatureCelsius,
-            cmd.PulseRate, cmd.OxygenSaturation, cmd.ChiefComplaint);
+            cmd.PulseRate, cmd.OxygenSaturation, cmd.ChiefComplaint,
+            cmd.PainScore, cmd.Priority);
 
         await writeRepository.UpdateAsync(visit, ct);
         await auditService.LogAsync("Visit", visit.Id.ToString(), "Triaged",

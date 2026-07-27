@@ -12,6 +12,7 @@ public record VisitDetailResponse(
     int? BloodPressureSystolic, int? BloodPressureDiastolic,
     decimal? WeightKg, decimal? HeightCm,
     decimal? TemperatureCelsius, int? PulseRate, decimal? OxygenSaturation,
+    int? PainScore, string? Priority,
     string? Department,
     string? Specialty,
     string? SpecialtyData,
