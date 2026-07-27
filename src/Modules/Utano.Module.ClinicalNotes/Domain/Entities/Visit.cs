@@ -28,6 +28,8 @@ public class Visit : AggregateRoot
 
     // Clinical
     public string? Department { get; private set; }
+    public string? Specialty { get; private set; }
+    public string? SpecialtyData { get; private set; }
     public string? ChiefComplaint { get; private set; }
     public string? Symptoms { get; private set; }
     public string? Diagnosis { get; private set; }
@@ -47,7 +49,8 @@ public class Visit : AggregateRoot
         Guid? appointmentId = null,
         string? department = null,
         string? patientGender = null,
-        DateOnly? patientDateOfBirth = null)
+        DateOnly? patientDateOfBirth = null,
+        string? specialty = null)
     {
         if (string.IsNullOrWhiteSpace(patientName))
             throw new UtanoDomainException("Patient name is required.");
@@ -65,6 +68,7 @@ public class Visit : AggregateRoot
             VisitDate = visitDate,
             AppointmentId = appointmentId,
             Department = department?.Trim(),
+            Specialty = specialty?.Trim(),
             PatientGender = patientGender,
             PatientDateOfBirth = patientDateOfBirth,
             Status = VisitStatus.InProgress,
@@ -93,7 +97,9 @@ public class Visit : AggregateRoot
         string? chiefComplaint, string? symptoms,
         string? diagnosis, string? treatment,
         string? prescription, string? notes,
-        string? department = null)
+        string? department = null,
+        string? specialty = null,
+        string? specialtyData = null)
     {
         ChiefComplaint = chiefComplaint;
         Symptoms = symptoms;
@@ -102,6 +108,8 @@ public class Visit : AggregateRoot
         Prescription = prescription;
         Notes = notes;
         Department = department?.Trim();
+        Specialty = string.IsNullOrWhiteSpace(specialty) ? Specialty : specialty.Trim();
+        SpecialtyData = specialtyData;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 

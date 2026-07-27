@@ -24,7 +24,8 @@ public class OpenVisitHandler(
             command.AppointmentId,
             command.Department,
             command.PatientGender,
-            command.PatientDateOfBirth);
+            command.PatientDateOfBirth,
+            command.Specialty);
 
         await writeRepository.AddAsync(visit, cancellationToken);
 

@@ -17,6 +17,7 @@ public class User : AggregateRoot
     public Email Email { get; private set; } = null!;
     public string PasswordHash { get; private set; } = null!;
     public string Role { get; private set; } = null!;
+    public string? Specialty { get; private set; }
     public UserStatus Status { get; private set; }
 
     public string FullName => $"{FirstName} {LastName}";
@@ -70,7 +71,7 @@ public class User : AggregateRoot
         return true;
     }
 
-    public void Update(string firstName, string lastName, string role)
+    public void Update(string firstName, string lastName, string role, string? specialty = null)
     {
         if (string.IsNullOrWhiteSpace(firstName))
             throw new UtanoDomainException("First name is required.");
@@ -79,6 +80,13 @@ public class User : AggregateRoot
         FirstName = firstName.Trim();
         LastName = lastName.Trim();
         Role = role;
+        Specialty = string.IsNullOrWhiteSpace(specialty) ? null : specialty.Trim();
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void SetSpecialty(string? specialty)
+    {
+        Specialty = string.IsNullOrWhiteSpace(specialty) ? null : specialty.Trim();
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 

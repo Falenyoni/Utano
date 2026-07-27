@@ -15,7 +15,7 @@ public class GetVisitByIdHandler(IVisitReadRepository readRepository)
             v.Id, v.PatientId, v.PatientName, v.DoctorId, v.DoctorName, v.VisitDate,
             v.BloodPressureSystolic, v.BloodPressureDiastolic,
             v.WeightKg, v.HeightCm, v.TemperatureCelsius, v.PulseRate, v.OxygenSaturation,
-            v.Department,
+            v.Department, v.Specialty, v.SpecialtyData,
             v.ChiefComplaint, v.Symptoms, v.Diagnosis, v.Treatment, v.Prescription, v.Notes,
             v.Status.ToString(), v.CreatedAt, v.UpdatedAt);
     }

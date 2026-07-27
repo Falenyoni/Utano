@@ -10,5 +10,7 @@ public record UpdateVisitCommand(
     string? Treatment,
     string? Prescription,
     string? Notes,
-    string? Department = null
+    string? Department = null,
+    string? Specialty = null,
+    string? SpecialtyData = null
 ) : IRequest<bool>;

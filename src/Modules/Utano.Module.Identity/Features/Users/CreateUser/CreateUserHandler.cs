@@ -39,6 +39,9 @@ public class CreateUserHandler(
             passwordHash,
             command.Role);
 
+        if (!string.IsNullOrWhiteSpace(command.Specialty))
+            user.SetSpecialty(command.Specialty);
+
         await writeRepository.AddAsync(user, cancellationToken);
 
         var systemRole = await db.Roles.FirstOrDefaultAsync(

@@ -7,5 +7,6 @@ public record CreateUserCommand(
     string LastName,
     string Email,
     string Password,
-    string Role
+    string Role,
+    string? Specialty = null
 ) : IRequest<CreateUserResponse>;

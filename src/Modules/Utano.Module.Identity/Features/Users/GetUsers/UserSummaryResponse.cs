@@ -5,6 +5,7 @@ public record UserSummaryResponse(
     string FullName,
     string Email,
     string Role,
+    string? Specialty,
     string Status,
     List<Guid> RoleIds
 );

@@ -29,6 +29,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(30)
             .IsRequired();
 
+        builder.Property(u => u.Specialty).HasMaxLength(100);
+
         builder.Property(u => u.Status)
             .HasConversion<string>()
             .HasMaxLength(30)

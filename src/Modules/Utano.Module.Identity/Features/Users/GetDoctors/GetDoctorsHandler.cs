@@ -20,7 +20,7 @@ public class GetDoctorsHandler(
 
         return doctors.Concat(nurses)
             .OrderBy(u => u.FullName)
-            .Select(d => new DoctorResponse(d.Id, d.FullName, d.Email.Value))
+            .Select(d => new DoctorResponse(d.Id, d.FullName, d.Email.Value, d.Specialty))
             .ToList()
             .AsReadOnly();
     }

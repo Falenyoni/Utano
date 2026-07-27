@@ -22,7 +22,7 @@ public class UpdateUserEndpoint(ISender sender) : ControllerBase
     [Tags("Identity Module")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateUserBody body, CancellationToken ct)
     {
-        var ok = await sender.Send(new UpdateUserCommand(id, body.FirstName, body.LastName, body.Role), ct);
+        var ok = await sender.Send(new UpdateUserCommand(id, body.FirstName, body.LastName, body.Role, body.Specialty), ct);
         return ok ? NoContent() : NotFound();
     }
 
@@ -38,9 +38,9 @@ public class UpdateUserEndpoint(ISender sender) : ControllerBase
     }
 }
 
-public record UpdateUserBody(string FirstName, string LastName, string Role);
+public record UpdateUserBody(string FirstName, string LastName, string Role, string? Specialty = null);
 
-public record UpdateUserCommand(Guid Id, string FirstName, string LastName, string Role) : IRequest<bool>;
+public record UpdateUserCommand(Guid Id, string FirstName, string LastName, string Role, string? Specialty = null) : IRequest<bool>;
 
 public class UpdateUserHandler(
     IUserReadRepository readRepository,
@@ -56,7 +56,7 @@ public class UpdateUserHandler(
         if (!SystemRoles.All.Contains(cmd.Role, StringComparer.OrdinalIgnoreCase))
             throw new UtanoDomainException($"Invalid role: {cmd.Role}");
 
-        user.Update(cmd.FirstName, cmd.LastName, cmd.Role);
+        user.Update(cmd.FirstName, cmd.LastName, cmd.Role, cmd.Specialty);
         await writeRepository.UpdateAsync(user, ct);
         return true;
     }

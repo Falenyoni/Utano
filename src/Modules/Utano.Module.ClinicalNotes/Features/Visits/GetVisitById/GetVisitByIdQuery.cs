@@ -13,6 +13,8 @@ public record VisitDetailResponse(
     decimal? WeightKg, decimal? HeightCm,
     decimal? TemperatureCelsius, int? PulseRate, decimal? OxygenSaturation,
     string? Department,
+    string? Specialty,
+    string? SpecialtyData,
     string? ChiefComplaint, string? Symptoms,
     string? Diagnosis, string? Treatment,
     string? Prescription, string? Notes,

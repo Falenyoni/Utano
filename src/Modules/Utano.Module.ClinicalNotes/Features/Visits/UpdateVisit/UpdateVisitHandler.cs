@@ -19,7 +19,7 @@ public class UpdateVisitHandler(IVisitReadRepository readRepository, IVisitWrite
             command.ChiefComplaint, command.Symptoms,
             command.Diagnosis, command.Treatment,
             command.Prescription, command.Notes,
-            command.Department);
+            command.Department, command.Specialty, command.SpecialtyData);
 
         await writeRepository.UpdateAsync(visit, cancellationToken);
         return true;
