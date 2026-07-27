@@ -55,6 +55,7 @@ public class UserReadRepository(IdentityDbContext context) : IUserReadRepository
     {
         return await context.Users
             .AsNoTracking()
+            .Include(u => u.RoleAssignments)
             .Where(u => u.PracticeId == practiceId && u.Role == role)
             .OrderBy(u => u.LastName)
             .ToListAsync(cancellationToken);
@@ -65,6 +66,7 @@ public class UserReadRepository(IdentityDbContext context) : IUserReadRepository
     {
         return await context.Users
             .AsNoTracking()
+            .Include(u => u.RoleAssignments)
             .Where(u => u.PracticeId == practiceId)
             .OrderBy(u => u.Role).ThenBy(u => u.LastName)
             .ToListAsync(cancellationToken);
