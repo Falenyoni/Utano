@@ -4,8 +4,8 @@ namespace Utano.Module.ClinicalNotes.Configuration;
 
 internal sealed class ClinicalNotesModuleDescriptor : IModuleDescriptor
 {
-    public string FeatureKey => "core";
-    public string Plan => "free";
+    public string FeatureKey => "clinical_notes";
+    public string Plan => "professional";
 
     public IReadOnlyList<string> AllPermissions => [View, Create, Edit, TriageCreate, DispensaryView, DispensaryManage];
 

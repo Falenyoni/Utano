@@ -14,7 +14,6 @@ internal sealed class UtanoCoreModuleDescriptor : IModuleDescriptor
         SettingsRoles,
         SettingsStaffView, SettingsStaffManage,
         SettingsPractice,
-        ReportsView,
     ];
 
     public IReadOnlyList<string> GetPermissionsForRole(string roleName) => roleName switch
@@ -24,11 +23,8 @@ internal sealed class UtanoCoreModuleDescriptor : IModuleDescriptor
             SettingsRoles,
             SettingsStaffView, SettingsStaffManage,
             SettingsPractice,
-            ReportsView,
         ],
-        SystemRoles.Doctor  => [ReportsView],
-        SystemRoles.Billing => [ReportsView],
-        _                   => []
+        _ => []
     };
 
     public const string SettingsUsersView   = "settings.users.view";
@@ -37,5 +33,4 @@ internal sealed class UtanoCoreModuleDescriptor : IModuleDescriptor
     public const string SettingsStaffView   = "settings.staff.view";
     public const string SettingsStaffManage = "settings.staff.manage";
     public const string SettingsPractice    = "settings.practice";
-    public const string ReportsView         = "reports.view";
 }

@@ -57,6 +57,7 @@ public static class AppConfiguration
         services.AddScoped<IPasswordService, PasswordService>();
         services.AddScoped<IFeatureService, FeatureService>();
         services.AddSingleton<IModuleDescriptor, UtanoCoreModuleDescriptor>();
+        services.AddSingleton<IModuleDescriptor, ReportsModuleDescriptor>();
 
         return services;
     }
