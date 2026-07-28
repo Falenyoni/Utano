@@ -10,7 +10,7 @@ namespace Utano.Module.ClinicalNotes.Features.Admin;
 
 [ApiController]
 [Authorize]
-[Route("api/admin")]
+[Route("api")]
 public class GetAuditLogEndpoint(ISender sender) : ControllerBase
 {
     [HttpGet("audit-log")]
