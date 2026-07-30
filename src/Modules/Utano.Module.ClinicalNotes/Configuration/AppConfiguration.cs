@@ -8,6 +8,7 @@ using Utano.Module.Core.Modules;
 using Utano.Module.ClinicalNotes.Domain.Interfaces;
 using Utano.Module.ClinicalNotes.Infrastructure;
 using Utano.Module.ClinicalNotes.Infrastructure.Repositories;
+using Utano.Module.Core.Persistence;
 using Utano.Module.Core.Services;
 
 namespace Utano.Module.ClinicalNotes.Configuration;
@@ -18,8 +19,11 @@ public static class AppConfiguration
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddDbContext<ClinicalNotesDbContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("UtanoDb")));
+        services.AddScoped<DomainEventDispatchInterceptor>();
+
+        services.AddDbContext<ClinicalNotesDbContext>((sp, options) =>
+            options.UseNpgsql(configuration.GetConnectionString("UtanoDb"))
+                .AddInterceptors(sp.GetRequiredService<DomainEventDispatchInterceptor>()));
 
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(AppConfiguration).Assembly));

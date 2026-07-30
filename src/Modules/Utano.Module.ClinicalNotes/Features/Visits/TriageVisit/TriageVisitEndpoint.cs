@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using Utano.Module.ClinicalNotes.Domain.Interfaces;
-using Utano.Module.Core.Services;
 
 namespace Utano.Module.ClinicalNotes.Features.Visits.TriageVisit;
 
@@ -51,8 +50,7 @@ public record TriageVisitCommand(
 
 public class TriageVisitHandler(
     IVisitReadRepository readRepository,
-    IVisitWriteRepository writeRepository,
-    IAuditService auditService)
+    IVisitWriteRepository writeRepository)
     : IRequestHandler<TriageVisitCommand, bool>
 {
     public async Task<bool> Handle(TriageVisitCommand cmd, CancellationToken ct)
@@ -67,8 +65,6 @@ public class TriageVisitHandler(
             cmd.PainScore, cmd.Priority);
 
         await writeRepository.UpdateAsync(visit, ct);
-        await auditService.LogAsync("Visit", visit.Id.ToString(), "Triaged",
-            $"Patient: {visit.PatientName}", ct);
         return true;
     }
 }

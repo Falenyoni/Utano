@@ -1,12 +1,19 @@
 using Utano.Module.ClinicalNotes.Domain.Enums;
 using Utano.Module.Core.Domain.Aggregate;
+using Utano.Module.Core.Domain.Events;
+using Utano.Module.Core.Domain.Events.ClinicalNotes;
 using Utano.Module.Core.Exceptions;
 
 namespace Utano.Module.ClinicalNotes.Domain.Entities;
 
-public class Visit : AggregateRoot
+public class Visit : AggregateRoot, IHasDomainEvents
 {
     private Visit() { }
+
+    private readonly List<IDomainEvent> _domainEvents = [];
+    public IReadOnlyList<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+    public void ClearDomainEvents() => _domainEvents.Clear();
+    private void AddDomainEvent(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
 
     public Guid PatientId { get; private set; }
     public string PatientName { get; private set; } = null!;
@@ -114,6 +121,8 @@ public class Visit : AggregateRoot
         Specialty = string.IsNullOrWhiteSpace(specialty) ? Specialty : specialty.Trim();
         SpecialtyData = specialtyData;
         UpdatedAt = DateTimeOffset.UtcNow;
+
+        AddDomainEvent(new VisitClinicalNotesUpdatedEvent(PracticeId, Id, PatientName));
     }
 
     public void Triage(
@@ -143,6 +152,8 @@ public class Visit : AggregateRoot
             Status = VisitStatus.Triaged;
 
         UpdatedAt = DateTimeOffset.UtcNow;
+
+        AddDomainEvent(new VisitTriagedEvent(PracticeId, Id, PatientName));
     }
 
     public void Complete()
@@ -151,5 +162,7 @@ public class Visit : AggregateRoot
             throw new UtanoDomainException("Visit is already completed.");
         Status = VisitStatus.Completed;
         UpdatedAt = DateTimeOffset.UtcNow;
+
+        AddDomainEvent(new VisitCompletedEvent(PracticeId, Id, PatientName, DoctorName));
     }
 }

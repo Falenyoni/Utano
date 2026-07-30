@@ -65,6 +65,8 @@ This doc captures the current state, the gaps found when reviewing the module fo
 - Chosen over a direct call from Appointments straight into `INotificationRepository` because Billing already carries `AppointmentId`/`VisitId` on invoices — a second consumer reacting to appointment lifecycle is a real near-term possibility, not a hypothetical. Events mean Billing (or anything else) can subscribe later without Appointments being touched at all; a direct call would need a new call site added to the handler for every new consumer.
 - No message bus needed for this — it's all in-process, single deployable. A bus (or at minimum a background job) only becomes relevant once notifications mean an actual external send (Phase 4) that shouldn't block the request thread.
 
+**Second adopter (2026-07-30):** `Utano.Module.ClinicalNotes` now uses the same `IHasDomainEvents`/`DomainEventDispatchInterceptor` infra for its audit log — `Visit.Complete()`/`Triage()` raise `VisitCompletedEvent`/`VisitTriagedEvent`, and `VisitCompletedAuditHandler`/`VisitTriagedAuditHandler` write the `AuditLog` entry instead of `CompleteVisitHandler`/`TriageVisitHandler` calling `IAuditService` inline. No changes were needed to the interceptor itself — confirms it's genuinely reusable across modules, not just built for this one case.
+
 ### Phase 3 — Reminders
 - Requires picking a scheduler (`Hangfire` is the common .NET choice — persists jobs to Postgres, has a dashboard, or a lighter `IHostedService` + `PeriodicTimer` if we want to avoid a new dependency for a POC).
 - A recurring job scans for appointments starting in the next N hours and creates a reminder notification (staff-facing first, since that needs no external provider).

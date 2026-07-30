@@ -31,8 +31,7 @@ public class CompleteVisitHandler(
     Utano.Module.ClinicalNotes.Domain.Interfaces.IVisitWriteRepository writeRepository,
     Utano.Module.Core.Services.IAppointmentLinker appointmentLinker,
     Utano.Module.Core.Services.IBillingService billingService,
-    Utano.Module.Core.Services.ICurrentUserService currentUser,
-    Utano.Module.Core.Services.IAuditService auditService)
+    Utano.Module.Core.Services.ICurrentUserService currentUser)
     : IRequestHandler<CompleteVisitCommand, bool>
 {
     public async Task<bool> Handle(CompleteVisitCommand command, CancellationToken cancellationToken)
@@ -45,8 +44,6 @@ public class CompleteVisitHandler(
             await appointmentLinker.MarkCompletedAsync(visit.AppointmentId.Value, cancellationToken);
         await billingService.CreateDraftInvoiceForVisitAsync(currentUser.PracticeId, visit.Id,
             visit.PatientId, visit.PatientName, visit.DoctorId, visit.DoctorName, cancellationToken);
-        await auditService.LogAsync("Visit", visit.Id.ToString(), "Completed",
-            $"Patient: {visit.PatientName} · Doctor: {visit.DoctorName}", cancellationToken);
         return true;
     }
 }
