@@ -1,12 +1,19 @@
 using Utano.Module.Appointments.Domain.Enums;
 using Utano.Module.Core.Domain.Aggregate;
+using Utano.Module.Core.Domain.Events;
+using Utano.Module.Core.Domain.Events.Appointments;
 using Utano.Module.Core.Exceptions;
 
 namespace Utano.Module.Appointments.Domain.Entities;
 
-public class Appointment : AggregateRoot
+public class Appointment : AggregateRoot, IHasDomainEvents
 {
     private Appointment() { }
+
+    private readonly List<IDomainEvent> _domainEvents = [];
+    public IReadOnlyList<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+    public void ClearDomainEvents() => _domainEvents.Clear();
+    private void AddDomainEvent(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
 
     public Guid PatientId { get; private set; }
     public string PatientName { get; private set; } = null!;
@@ -40,7 +47,7 @@ public class Appointment : AggregateRoot
             throw new UtanoDomainException("Appointment date cannot be in the past.");
         if (endTime <= startTime) throw new UtanoDomainException("End time must be after start time.");
 
-        return new Appointment
+        var appointment = new Appointment
         {
             Id = Guid.NewGuid(),
             PracticeId = practiceId,
@@ -57,6 +64,11 @@ public class Appointment : AggregateRoot
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow
         };
+
+        appointment.AddDomainEvent(new AppointmentBookedEvent(
+            practiceId, appointment.Id, doctorId, doctorName, patientName, date, startTime, endTime));
+
+        return appointment;
     }
 
     public void Confirm()
@@ -82,6 +94,9 @@ public class Appointment : AggregateRoot
         Status = AppointmentStatus.Cancelled;
         CancellationReason = reason;
         UpdatedAt = DateTimeOffset.UtcNow;
+
+        AddDomainEvent(new AppointmentCancelledEvent(
+            PracticeId, Id, DoctorId, DoctorName, PatientName, AppointmentDate, StartTime, reason));
     }
 
     public void MarkNoShow()
@@ -113,9 +128,17 @@ public class Appointment : AggregateRoot
         if (newDoctorId == Guid.Empty) throw new UtanoDomainException("Doctor is required.");
         if (Status is AppointmentStatus.Completed or AppointmentStatus.Cancelled)
             throw new UtanoDomainException("Cannot reassign a completed or cancelled appointment.");
+
+        var previousDoctorId = DoctorId;
+        var previousDoctorName = DoctorName;
+
         DoctorId = newDoctorId;
         DoctorName = newDoctorName;
         UpdatedAt = DateTimeOffset.UtcNow;
+
+        AddDomainEvent(new AppointmentReassignedEvent(
+            PracticeId, Id, previousDoctorId, previousDoctorName, newDoctorId, newDoctorName,
+            PatientName, AppointmentDate, StartTime, EndTime));
     }
 
     public void Reschedule(DateOnly newDate, TimeOnly newStartTime, TimeOnly newEndTime)
@@ -132,5 +155,8 @@ public class Appointment : AggregateRoot
         EndTime = newEndTime;
         Status = AppointmentStatus.Scheduled;
         UpdatedAt = DateTimeOffset.UtcNow;
+
+        AddDomainEvent(new AppointmentRescheduledEvent(
+            PracticeId, Id, DoctorId, DoctorName, PatientName, newDate, newStartTime, newEndTime));
     }
 }

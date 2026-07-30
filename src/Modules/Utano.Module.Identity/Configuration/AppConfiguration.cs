@@ -56,6 +56,7 @@ public static class AppConfiguration
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IPasswordService, PasswordService>();
         services.AddScoped<IFeatureService, FeatureService>();
+        services.AddScoped<IUserPracticeValidator, UserPracticeValidator>();
         services.AddSingleton<IModuleDescriptor, UtanoCoreModuleDescriptor>();
         services.AddSingleton<IModuleDescriptor, ReportsModuleDescriptor>();
 

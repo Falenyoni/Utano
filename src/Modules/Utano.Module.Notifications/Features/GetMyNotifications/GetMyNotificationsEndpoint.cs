@@ -27,7 +27,7 @@ public class GetMyNotificationsEndpoint(INotificationRepository repository) : Co
     {
         var notifications = await repository.GetMyNotificationsAsync(30, ct);
         var result = notifications.Select(n => new NotificationResponse(
-            n.Id, n.SenderName, n.Title, n.Message, n.Type, n.ReferenceId, n.IsRead, n.CreatedAt));
+            n.Id, n.SenderName, n.Title, n.Message, n.Type.ToString(), n.ReferenceId, n.IsRead, n.CreatedAt));
         return Ok(result);
     }
 

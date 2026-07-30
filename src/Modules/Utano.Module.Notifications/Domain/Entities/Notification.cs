@@ -1,4 +1,5 @@
 using Utano.Module.Core.Domain.Aggregate;
+using Utano.Module.Notifications.Domain.Enums;
 
 namespace Utano.Module.Notifications.Domain.Entities;
 
@@ -11,7 +12,7 @@ public class Notification : AggregateRoot
     public string SenderName { get; private set; } = null!;
     public string Title { get; private set; } = null!;
     public string Message { get; private set; } = null!;
-    public string Type { get; private set; } = null!;
+    public NotificationType Type { get; private set; }
     public Guid? ReferenceId { get; private set; }
     public bool IsRead { get; private set; }
 
@@ -22,7 +23,7 @@ public class Notification : AggregateRoot
         string senderName,
         string title,
         string message,
-        string type,
+        NotificationType type,
         Guid? referenceId = null)
     {
         return new Notification

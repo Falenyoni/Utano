@@ -12,7 +12,7 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
         builder.Property(n => n.SenderName).HasMaxLength(200).IsRequired();
         builder.Property(n => n.Title).HasMaxLength(300).IsRequired();
         builder.Property(n => n.Message).HasMaxLength(2000).IsRequired();
-        builder.Property(n => n.Type).HasMaxLength(50).IsRequired();
+        builder.Property(n => n.Type).HasConversion<string>().HasMaxLength(50).IsRequired();
 
         builder.HasIndex(n => new { n.PracticeId, n.RecipientUserId, n.IsRead });
         builder.HasIndex(n => n.CreatedAt);

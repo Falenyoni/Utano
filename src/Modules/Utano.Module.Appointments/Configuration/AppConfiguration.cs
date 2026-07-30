@@ -8,6 +8,7 @@ using Utano.Module.Core.Modules;
 using Utano.Module.Appointments.Domain.Interfaces;
 using Utano.Module.Appointments.Infrastructure.Repositories;
 using Utano.Module.Appointments.Infrastructure.Services;
+using Utano.Module.Core.Persistence;
 using Utano.Module.Core.Services;
 
 namespace Utano.Module.Appointments.Configuration;
@@ -18,8 +19,11 @@ public static class AppConfiguration
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddDbContext<AppointmentsDbContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("UtanoDb")));
+        services.AddScoped<DomainEventDispatchInterceptor>();
+
+        services.AddDbContext<AppointmentsDbContext>((sp, options) =>
+            options.UseNpgsql(configuration.GetConnectionString("UtanoDb"))
+                .AddInterceptors(sp.GetRequiredService<DomainEventDispatchInterceptor>()));
 
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(AppConfiguration).Assembly));
