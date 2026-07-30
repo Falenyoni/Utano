@@ -26,6 +26,7 @@ public class Appointment : AggregateRoot, IHasDomainEvents
     public AppointmentStatus Status { get; private set; }
     public string? Notes { get; private set; }
     public string? CancellationReason { get; private set; }
+    public DateTimeOffset? RemindedAt { get; private set; }
 
     public static Appointment Book(
         Guid practiceId,
@@ -154,9 +155,19 @@ public class Appointment : AggregateRoot, IHasDomainEvents
         StartTime = newStartTime;
         EndTime = newEndTime;
         Status = AppointmentStatus.Scheduled;
+        RemindedAt = null; // moved to a new time - due for its own reminder again
         UpdatedAt = DateTimeOffset.UtcNow;
 
         AddDomainEvent(new AppointmentRescheduledEvent(
             PracticeId, Id, DoctorId, DoctorName, PatientName, newDate, newStartTime, newEndTime));
+    }
+
+    public void MarkReminded()
+    {
+        if (RemindedAt.HasValue) return;
+        RemindedAt = DateTimeOffset.UtcNow;
+
+        AddDomainEvent(new AppointmentReminderDueEvent(
+            PracticeId, Id, DoctorId, DoctorName, PatientName, AppointmentDate, StartTime));
     }
 }

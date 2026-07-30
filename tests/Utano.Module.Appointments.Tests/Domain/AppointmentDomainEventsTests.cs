@@ -82,4 +82,42 @@ public class AppointmentDomainEventsTests
 
         appointment.DomainEvents.ShouldBeEmpty();
     }
+
+    [Fact]
+    public void MarkReminded_RaisesAppointmentReminderDueEvent()
+    {
+        var appointment = BookAppointment();
+        appointment.ClearDomainEvents();
+
+        appointment.MarkReminded();
+
+        appointment.RemindedAt.ShouldNotBeNull();
+        appointment.DomainEvents.ShouldHaveSingleItem();
+        appointment.DomainEvents[0].ShouldBeOfType<AppointmentReminderDueEvent>();
+    }
+
+    [Fact]
+    public void MarkReminded_IsIdempotent()
+    {
+        var appointment = BookAppointment();
+        appointment.ClearDomainEvents();
+
+        appointment.MarkReminded();
+        var firstRemindedAt = appointment.RemindedAt;
+        appointment.MarkReminded();
+
+        appointment.RemindedAt.ShouldBe(firstRemindedAt);
+        appointment.DomainEvents.ShouldHaveSingleItem();
+    }
+
+    [Fact]
+    public void Reschedule_ClearsRemindedAt()
+    {
+        var appointment = BookAppointment();
+        appointment.MarkReminded();
+
+        appointment.Reschedule(FutureDate.AddDays(2), new TimeOnly(11, 0), new TimeOnly(11, 30));
+
+        appointment.RemindedAt.ShouldBeNull();
+    }
 }

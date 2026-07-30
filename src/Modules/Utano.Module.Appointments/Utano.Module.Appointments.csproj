@@ -15,4 +15,9 @@
     <ProjectReference Include="..\..\Shared\Utano.Shared.Models\Utano.Shared.Models.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Hangfire.Core" Version="1.8.24" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
 </Project>

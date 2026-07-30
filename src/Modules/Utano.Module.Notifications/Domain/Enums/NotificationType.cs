@@ -8,4 +8,5 @@ public enum NotificationType
     AppointmentRescheduled,
     AppointmentCancelled,
     AppointmentReassigned,
+    AppointmentReminder,
 }

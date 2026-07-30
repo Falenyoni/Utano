@@ -1,3 +1,6 @@
+using Hangfire;
+using Hangfire.Dashboard;
+using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.OpenApi;
@@ -41,6 +44,14 @@ public static class AppConfiguration
                     .AllowCredentials();
             });
         });
+
+        builder.Services.AddHangfire(config => config
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UsePostgreSqlStorage(options => options.UseNpgsqlConnection(
+                builder.Configuration.GetConnectionString("UtanoDb"))));
+        builder.Services.AddHangfireServer();
 
         builder.Services.AddIdentityModule(builder.Configuration);
         builder.Services.AddPatientsModule(builder.Configuration);
@@ -105,6 +116,20 @@ public static class AppConfiguration
         app.UseMiddleware<CancellationMiddleware>();
         app.UseMiddleware<ApiKeyMiddleware>();
         app.UseRouting();
+
+        // The app's auth is JWT-in-header (SPA pattern), which a directly browser-navigated
+        // dashboard can't carry - there's no cookie session to check a role against. Rather than
+        // fake an "Admin-only" check that doesn't actually hold, restrict this to local requests
+        // in Development only. Exposing it beyond that would need a real cookie-based admin
+        // session, which is out of scope here.
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseHangfireDashboard("/hangfire", new DashboardOptions
+            {
+                Authorization = [new LocalRequestsOnlyAuthorizationFilter()],
+            });
+        }
+
         app.ConfigureIdentityModule();
         app.UseAuthorization();
         app.UseMiddleware<SubscriptionMiddleware>();

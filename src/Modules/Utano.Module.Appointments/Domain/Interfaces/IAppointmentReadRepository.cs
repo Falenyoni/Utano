@@ -30,4 +30,12 @@ public interface IAppointmentReadRepository
         Guid doctorId,
         DateOnly date,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Across ALL practices - for the reminder scan background job, which has no
+    /// per-request practice context to scope to. Bypasses the tenant query filter deliberately.
+    /// </summary>
+    Task<IReadOnlyList<Appointment>> GetAppointmentsNeedingReminderAsync(
+        DateTimeOffset remindByCutoff,
+        CancellationToken cancellationToken = default);
 }

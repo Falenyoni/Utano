@@ -16,6 +16,7 @@ public class NotificationsDbContext : DbContext
     }
 
     public DbSet<Notification> Notifications { get; set; }
+    public DbSet<NotificationPreference> NotificationPreferences { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -25,5 +26,8 @@ public class NotificationsDbContext : DbContext
         // Scope to practice only — recipient filter applied in repository queries
         modelBuilder.Entity<Notification>()
             .HasQueryFilter(n => n.PracticeId == _currentUserService.PracticeId);
+
+        modelBuilder.Entity<NotificationPreference>()
+            .HasQueryFilter(p => p.PracticeId == _currentUserService.PracticeId);
     }
 }

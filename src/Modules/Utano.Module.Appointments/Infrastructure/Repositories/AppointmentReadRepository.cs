@@ -70,6 +70,34 @@ public class AppointmentReadRepository(AppointmentsDbContext context) : IAppoint
             .OrderBy(a => a.StartTime)
             .ToListAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<Appointment>> GetAppointmentsNeedingReminderAsync(
+        DateTimeOffset remindByCutoff, CancellationToken cancellationToken = default)
+    {
+        var nowUtc = DateTimeOffset.UtcNow;
+
+        // Coarse filter in SQL (date range only - DateOnly/TimeOnly combination isn't reliably
+        // translatable), then combine date+time precisely in memory. IgnoreQueryFilters is
+        // deliberate: this runs from a background job with no per-request practice context, and
+        // needs to see every practice's appointments, not just one.
+        var candidates = await context.Appointments
+            .IgnoreQueryFilters()
+            .AsNoTracking()
+            .Where(a =>
+                (a.Status == AppointmentStatus.Scheduled || a.Status == AppointmentStatus.Confirmed) &&
+                a.RemindedAt == null &&
+                a.AppointmentDate >= DateOnly.FromDateTime(nowUtc.UtcDateTime) &&
+                a.AppointmentDate <= DateOnly.FromDateTime(remindByCutoff.UtcDateTime))
+            .ToListAsync(cancellationToken);
+
+        return candidates
+            .Where(a =>
+            {
+                var startsAt = new DateTimeOffset(a.AppointmentDate.ToDateTime(a.StartTime), TimeSpan.Zero);
+                return startsAt > nowUtc && startsAt <= remindByCutoff;
+            })
+            .ToList();
+    }
+
     public async Task<bool> HasConflictAsync(
         Guid practiceId,
         Guid doctorId,
