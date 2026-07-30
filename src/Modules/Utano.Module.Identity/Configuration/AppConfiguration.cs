@@ -31,6 +31,14 @@ public static class AppConfiguration
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
+                // Without this, the JWT bearer handler silently remaps well-known short
+                // claim names ("sub", "email") to their long ClaimTypes equivalents during
+                // validation, regardless of what the token was issued with. TokenService
+                // issues "sub"/"email" as short names (JwtRegisteredClaimNames), so reading
+                // them back via those same short names in CurrentUserService requires this
+                // to be off - otherwise ICurrentUserService.UserId/Email always resolve to
+                // Guid.Empty/"" no matter who's authenticated.
+                options.MapInboundClaims = false;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
