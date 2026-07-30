@@ -23,6 +23,9 @@ public static class AppConfiguration
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
+        builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+        builder.Services.AddProblemDetails();
+
         var allowedOrigins = builder.Configuration
             .GetSection("Cors:AllowedOrigins")
             .Get<string[]>() ?? [];
@@ -73,6 +76,8 @@ public static class AppConfiguration
 
     public static WebApplication ConfigureApplication(this WebApplication app)
     {
+        app.UseExceptionHandler();
+
         app.UseForwardedHeaders(new ForwardedHeadersOptions
         {
             ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
