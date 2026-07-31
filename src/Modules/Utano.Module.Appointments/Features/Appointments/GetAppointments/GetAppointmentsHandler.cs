@@ -1,10 +1,11 @@
 using MediatR;
 using Utano.Module.Appointments.Domain.Interfaces;
 using Utano.Module.Core.Models;
+using Utano.Module.Core.Services;
 
 namespace Utano.Module.Appointments.Features.Appointments.GetAppointments;
 
-public class GetAppointmentsHandler(IAppointmentReadRepository readRepository)
+public class GetAppointmentsHandler(IAppointmentReadRepository readRepository, IVisitLookup visitLookup)
     : IRequestHandler<GetAppointmentsQuery, PagedResult<AppointmentSummaryResponse>>
 {
     public async Task<PagedResult<AppointmentSummaryResponse>> Handle(
@@ -18,6 +19,9 @@ public class GetAppointmentsHandler(IAppointmentReadRepository readRepository)
             query.Page,
             query.PageSize,
             cancellationToken);
+
+        var visitIds = await visitLookup.GetVisitIdsForAppointmentsAsync(
+            paged.Data.Select(a => a.Id), cancellationToken);
 
         return new PagedResult<AppointmentSummaryResponse>
         {
@@ -33,7 +37,8 @@ public class GetAppointmentsHandler(IAppointmentReadRepository readRepository)
                 a.Type.ToString(),
                 a.Status.ToString(),
                 a.Notes,
-                a.CreatedAt)),
+                a.CreatedAt,
+                visitIds.TryGetValue(a.Id, out var visitId) ? visitId : null)),
             TotalCount = paged.TotalCount,
             Page = paged.Page,
             PageSize = paged.PageSize

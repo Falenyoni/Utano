@@ -24,7 +24,7 @@ Each item is tagged with status: ✅ Fixed this session / ❌ Open.
 |---|---|---|
 | 4 | **No RBAC seeding reconciliation.** Every permission change requires a brand-new hand-written SQL migration, forever — 11 of these exist already, one already needed a manual delete-and-reinsert cleanup (`SeedSettingsPermissions`) because nothing keeps existing practices in sync with code. Recommended fix: auto-reconcile additive permission changes on app startup (diff DB against `IModuleDescriptor.GetPermissionsForRole`, insert what's missing); keep deletions as deliberate reviewed migrations. | ❌ Open |
 | 5 | **No canonical `Permissions` catalog table.** `RolePermissions.PermissionKey` is free-text `varchar(100)` with no referential integrity — a typo'd or orphaned permission key inserts silently and just never matches anything. Pairs naturally with #4 (same reconciliation pass could populate/sync this table). | ❌ Open |
-| 6 | **`AppointmentSummary` has no `visitId`.** Blocks the appointments UX fixes below (#9–11) — "open the existing visit" can't work without it. Needs a small Core-abstraction + ClinicalNotes-implementation pair, same shape as the existing `IAppointmentLinker`. | ❌ Open |
+| 6 | **`AppointmentSummary` has no `visitId`.** Blocks the appointments UX fixes below (#9–11) — "open the existing visit" can't work without it. Needs a small Core-abstraction + ClinicalNotes-implementation pair, same shape as the existing `IAppointmentLinker`. | ✅ Fixed 2026-07-31 — `IVisitLookup` (Core, impl in ClinicalNotes), batch-queried in `GetAppointmentsHandler`/`GetAppointmentByIdHandler`. Verified live against real data. |
 
 ## Tier 3 — UX correctness bugs (users hit these today)
 

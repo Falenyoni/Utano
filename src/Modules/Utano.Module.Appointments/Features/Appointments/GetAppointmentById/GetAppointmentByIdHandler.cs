@@ -1,10 +1,11 @@
 using MediatR;
 using Utano.Module.Appointments.Domain.Interfaces;
 using Utano.Module.Core.Exceptions;
+using Utano.Module.Core.Services;
 
 namespace Utano.Module.Appointments.Features.Appointments.GetAppointmentById;
 
-public class GetAppointmentByIdHandler(IAppointmentReadRepository readRepository)
+public class GetAppointmentByIdHandler(IAppointmentReadRepository readRepository, IVisitLookup visitLookup)
     : IRequestHandler<GetAppointmentByIdQuery, GetAppointmentByIdResponse?>
 {
     public async Task<GetAppointmentByIdResponse?> Handle(
@@ -12,6 +13,8 @@ public class GetAppointmentByIdHandler(IAppointmentReadRepository readRepository
     {
         var appointment = await readRepository.GetByIdAsync(query.Id, cancellationToken);
         if (appointment is null) return null;
+
+        var visitIds = await visitLookup.GetVisitIdsForAppointmentsAsync([appointment.Id], cancellationToken);
 
         return new GetAppointmentByIdResponse(
             appointment.Id,
@@ -27,6 +30,7 @@ public class GetAppointmentByIdHandler(IAppointmentReadRepository readRepository
             appointment.Notes,
             appointment.CancellationReason,
             appointment.CreatedAt,
-            appointment.UpdatedAt);
+            appointment.UpdatedAt,
+            visitIds.TryGetValue(appointment.Id, out var visitId) ? visitId : null);
     }
 }

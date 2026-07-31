@@ -8,6 +8,7 @@ using Utano.Module.Core.Modules;
 using Utano.Module.ClinicalNotes.Domain.Interfaces;
 using Utano.Module.ClinicalNotes.Infrastructure;
 using Utano.Module.ClinicalNotes.Infrastructure.Repositories;
+using Utano.Module.ClinicalNotes.Infrastructure.Services;
 using Utano.Module.Core.Persistence;
 using Utano.Module.Core.Services;
 
@@ -33,6 +34,7 @@ public static class AppConfiguration
         services.AddScoped<IVisitReadRepository, VisitReadRepository>();
         services.AddScoped<IVisitWriteRepository, VisitWriteRepository>();
         services.AddScoped<IAuditService, AuditService>();
+        services.AddScoped<IVisitLookup, VisitLookup>();
         services.AddSingleton<IModuleDescriptor, ClinicalNotesModuleDescriptor>();
 
         return services;
