@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Utano.Module.Core.Exceptions;
+using Utano.Module.Core.Modules;
 using Utano.Module.Core.Services;
 using Utano.Module.Identity.DatabaseMappings;
 
@@ -26,6 +27,25 @@ public class UpdateRoleHandler(IdentityDbContext db, ICurrentUserService current
 
         if (nameTaken)
             throw new UtanoDomainException($"A role named '{command.Name}' already exists.");
+
+        // System roles (Admin/Doctor/Nurse/...) are platform-owned: their name is relied on by
+        // IModuleDescriptor.GetPermissionsForRole(roleName), and their permissions are meant to
+        // come from that mapping, not be hand-edited per practice. Description and active-state
+        // (except deactivating Admin) are still fine to change.
+        if (role.IsSystem)
+        {
+            if (!string.Equals(command.Name.Trim(), role.Name, StringComparison.Ordinal))
+                throw new UtanoDomainException("System role names cannot be changed.");
+
+            var currentPermissions = role.GetPermissionKeys().ToHashSet();
+            var requestedPermissions = command.Permissions.ToHashSet();
+            if (!currentPermissions.SetEquals(requestedPermissions))
+                throw new UtanoDomainException(
+                    "System role permissions are managed by the platform and cannot be edited directly.");
+
+            if (role.Name == SystemRoles.Admin && !command.IsActive)
+                throw new UtanoDomainException("The Admin role cannot be deactivated.");
+        }
 
         role.Update(command.Name, command.Description);
         role.SetPermissions(command.Permissions);

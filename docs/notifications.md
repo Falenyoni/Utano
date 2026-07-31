@@ -104,24 +104,32 @@ No external platform needed — **SignalR** (built into ASP.NET Core) would let 
 | **SendGrid** (Twilio) | Mature, well-known, 100/day free tier, mature .NET SDK. |
 | **AWS SES** | Cheapest at real scale; more setup overhead (domain verification, sandbox mode limits) — worth it only once volume justifies it. |
 
-### SMS / WhatsApp (matters more than email here — Zimbabwean patients are far more likely to have a phone number than a checked email inbox)
+### SMS — dropped from scope (2026-07-30)
 
-| Provider | Zimbabwe SMS reach | WhatsApp | Notes |
-|---|---|---|---|
-| **Africa's Talking** | Direct local carrier routes (Econet, NetOne, Telecel) | Yes | Purpose-built for African markets — likely the most reliable and cheapest way to actually land an SMS on a Zim number. Same regional-fit reasoning already applied to Indlela's payment provider choice (Flutterwave/Paynow over pure Stripe). |
-| **Twilio** | Via international routes | Yes (WhatsApp Business API) | Global reach, very mature .NET SDK, but SMS deliverability/pricing into Zimbabwe is typically weaker than a local aggregator. |
-| **Clickatell** | Yes | Limited | Long-standing Southern African SMS gateway. |
+Bongani's call: SMS costs real money per message with no meaningful free tier on any provider, and patient messaging is generally moving to WhatsApp anyway. Not worth building. `NotificationPreference.SmsEnabled` still exists as a DB column (harmless, unused — not worth a migration to remove it) but the frontend no longer shows an SMS toggle at all, and `PUT /api/notifications/preferences` always sends `smsEnabled: false`.
 
-**Working recommendation:** don't decide this until Phase 4 is actually being built, but if forced to pick today — **Africa's Talking** for SMS/WhatsApp given carrier reach into Zimbabwe, with **Resend** as a cheap email fallback where a patient email is on file. Mirrors the "local provider for local reality" call already made for Indlela billing.
+### WhatsApp (the actual plan for patient-facing reminders)
+
+**Meta's own WhatsApp Cloud API, not a reseller.** First 1,000 conversations/month are free *per practice* — at a single small clinic's reminder volume, this likely covers everything for $0. Africa's Talking/Twilio can also send WhatsApp (as resellers on top of Meta's API), but there's no reason to pay a markup when Meta's direct API has its own free tier and .NET has straightforward HTTP client support for it.
+
+### Cost model — who pays
+
+**Utano (the SaaS operator) pays the provider directly** — one shared Meta/Resend account across all practices, never "bring your own API key." Cost is absorbed into the existing subscription price, not metered separately:
+
+- **Starter (free tier):** in-app + email. Both cost ~$0 at this scale regardless of provider, no reason to gate them.
+- **Professional (paid tier):** adds WhatsApp. Even fully loaded, WhatsApp's free tier likely covers a small practice's entire volume — the marginal cost only shows up once a practice is large enough that the Professional subscription revenue already covers it many times over. Revisit metered/pass-through billing only if real usage data ever says otherwise (YAGNI applies to billing complexity the same as code).
+
+**Gating built (2026-07-30):** the WhatsApp toggle in the frontend Notification Preferences modal is disabled with an upgrade prompt for Starter-tier practices (`subscription.tier !== 'Professional'`), shown as "Coming soon" for Professional practices since the channel itself isn't built yet. This is **frontend-only enforcement** — while wiring it, checked how every other Professional-gated module (Billing, Inventory, ClinicalNotes) enforces its tier restriction server-side, and found `IFeatureService.IsEnabledAsync` (the actual per-request gate) is never called anywhere in the backend. Tier gating is frontend-only across the *entire app* today, not a new gap introduced here — matched the existing convention rather than building a stricter one-off backend check for just this feature. Worth fixing app-wide later, alongside the permission-enforcement gap noted in `project_utano_poc` memory.
+
+**Decided (2026-07-30):** WhatsApp via Meta's Cloud API directly (not a reseller) + Resend for email. SMS dropped entirely — see above.
 
 ---
 
 ## Open Questions
 
-- Do we want WhatsApp as the primary reminder channel instead of SMS? Adoption is high in Zimbabwe and it's often cheaper per message than SMS — but adds template-approval overhead with Meta.
-- Should reminder timing be configurable per practice (e.g. 24h vs 2h before), or fixed for the POC?
-- Opt-out — does a patient get any say in whether they receive SMS reminders, or is it implicit from booking?
-- Who owns the provider account/billing for SMS once we're past POC stage?
+- Reminder timing is already configurable (`AppointmentReminders:HoursBefore`, default 24) — per-practice override not built, revisit if a practice actually asks.
+- Meta's WhatsApp templates need pre-approval for outbound messages outside a user-initiated conversation window — factor the approval lead time into whenever Phase 4 actually gets scheduled.
+- Server-side Professional-tier enforcement (`IFeatureService.IsEnabledAsync` is currently dead code app-wide) — worth fixing before WhatsApp sending goes live, since at that point a Starter practice bypassing the frontend gate would actually cost real money, unlike today's cosmetic-only Professional features.
 
 ---
 
