@@ -26,6 +26,18 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
             return true;
         }
 
+        if (exception is UtanoForbiddenException forbiddenException)
+        {
+            httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
+            await httpContext.Response.WriteAsJsonAsync(new ProblemDetails
+            {
+                Status = StatusCodes.Status403Forbidden,
+                Title = "Forbidden",
+                Detail = forbiddenException.Message,
+            }, cancellationToken);
+            return true;
+        }
+
         logger.LogError(exception, "Unhandled exception on {Method} {Path}",
             httpContext.Request.Method, httpContext.Request.Path);
 

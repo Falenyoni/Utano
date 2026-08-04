@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using Utano.Module.Core.Authorization;
 using Utano.Module.Core.Services;
+using Utano.Module.Identity.Configuration;
 using Utano.Module.Identity.Domain.Interfaces;
 
 namespace Utano.Module.Identity.Features.PracticeSettings;
@@ -79,7 +81,11 @@ public class GetPracticeFeaturesHandler(IFeatureService featureService, ICurrent
 
 // ─── Update ─────────────────────────────────────────────────────────────────
 
-public record UpdatePracticeCommand(string Name, string ContactEmail, string ContactPhone, string PhysicalAddress, bool HasDispensary, string? AdhozNumber, string? BpNumber) : IRequest<bool>;
+public record UpdatePracticeCommand(string Name, string ContactEmail, string ContactPhone, string PhysicalAddress, bool HasDispensary, string? AdhozNumber, string? BpNumber)
+    : IRequest<bool>, IRequirePermission
+{
+    public string Permission => UtanoCoreModuleDescriptor.SettingsPractice;
+}
 
 public class UpdatePracticeHandler(IPracticeRepository repository, ICurrentUserService currentUser)
     : IRequestHandler<UpdatePracticeCommand, bool>

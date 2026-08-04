@@ -36,6 +36,28 @@ public class SetPracticeSubscriptionEndpoint(ISender sender) : ControllerBase
             _ => NoContent()
         };
     }
+
+    [HttpPost("{practiceId:guid}/extend-trial")]
+    [ProducesResponseType((int)HttpStatusCode.NoContent)]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
+    [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+    [EndpointSummary("Extend a practice's current trial by N days")]
+    [Tags("Admin")]
+    public async Task<IActionResult> ExtendTrial(
+        Guid practiceId,
+        [FromBody] ExtendTrialBody body,
+        CancellationToken ct)
+    {
+        var result = await sender.Send(new ExtendTrialCommand(practiceId, body.AdditionalDays), ct);
+
+        return result switch
+        {
+            ExtendTrialResult.NotFound => NotFound(),
+            ExtendTrialResult.NotOnTrial => BadRequest("Practice is not currently on a trial."),
+            ExtendTrialResult.BadDays => BadRequest("Additional days must be positive."),
+            _ => NoContent()
+        };
+    }
 }
 
 public record SetSubscriptionBody(string Tier, string Status, DateTimeOffset? ExpiresAt);
@@ -124,5 +146,34 @@ public class SetPracticeSubscriptionHandler(
         }
 
         await db.SaveChangesAsync(ct);
+    }
+}
+
+public record ExtendTrialBody(int AdditionalDays);
+
+public enum ExtendTrialResult
+{ Ok, NotFound, NotOnTrial, BadDays }
+
+public record ExtendTrialCommand(Guid PracticeId, int AdditionalDays) : IRequest<ExtendTrialResult>;
+
+public class ExtendTrialHandler(IPracticeRepository practiceRepository)
+    : IRequestHandler<ExtendTrialCommand, ExtendTrialResult>
+{
+    public async Task<ExtendTrialResult> Handle(ExtendTrialCommand cmd, CancellationToken ct)
+    {
+        if (cmd.AdditionalDays <= 0)
+            return ExtendTrialResult.BadDays;
+
+        var practice = await practiceRepository.GetByIdAsync(cmd.PracticeId, ct);
+        if (practice is null)
+            return ExtendTrialResult.NotFound;
+
+        if (practice.SubscriptionStatus != SubscriptionStatus.Trial)
+            return ExtendTrialResult.NotOnTrial;
+
+        practice.ExtendTrial(cmd.AdditionalDays);
+        await practiceRepository.UpdateAsync(practice, ct);
+
+        return ExtendTrialResult.Ok;
     }
 }

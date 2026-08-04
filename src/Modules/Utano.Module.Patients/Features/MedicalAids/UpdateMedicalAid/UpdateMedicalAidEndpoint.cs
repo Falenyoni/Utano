@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using Utano.Module.Core.Authorization;
 using Utano.Module.Core.Exceptions;
 using Utano.Module.Patients.Domain.Interfaces;
 
@@ -27,7 +28,10 @@ public class UpdateMedicalAidEndpoint(ISender sender) : ControllerBase
 
 public record UpdateMedicalAidBody(string Name, string Code);
 
-public record UpdateMedicalAidCommand(Guid Id, string Name, string Code) : IRequest;
+public record UpdateMedicalAidCommand(Guid Id, string Name, string Code) : IRequest, IRequirePermission
+{
+    public string Permission => "settings.medical_aids";
+}
 
 public class UpdateMedicalAidHandler(IMedicalAidRepository repository)
     : IRequestHandler<UpdateMedicalAidCommand>

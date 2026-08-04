@@ -1,7 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Utano.Module.Core.Exceptions;
-using Utano.Module.Core.Modules;
 using Utano.Module.Core.Services;
 using Utano.Module.Identity.DatabaseMappings;
 
@@ -10,6 +9,8 @@ namespace Utano.Module.Identity.Features.Roles.UpdateRole;
 public class UpdateRoleHandler(IdentityDbContext db, ICurrentUserService currentUser)
     : IRequestHandler<UpdateRoleCommand>
 {
+    private const string ManageRolesPermission = "settings.roles";
+
     public async Task Handle(UpdateRoleCommand command, CancellationToken cancellationToken)
     {
         var role = await db.Roles
@@ -28,23 +29,33 @@ public class UpdateRoleHandler(IdentityDbContext db, ICurrentUserService current
         if (nameTaken)
             throw new UtanoDomainException($"A role named '{command.Name}' already exists.");
 
-        // System roles (Admin/Doctor/Nurse/...) are platform-owned: their name is relied on by
-        // IModuleDescriptor.GetPermissionsForRole(roleName), and their permissions are meant to
-        // come from that mapping, not be hand-edited per practice. Description and active-state
-        // (except deactivating Admin) are still fine to change.
-        if (role.IsSystem)
+        // System role names are relied on by IModuleDescriptor.GetPermissionsForRole(roleName) and
+        // any future reconciliation, so the name stays locked. Permissions are otherwise freely
+        // editable per practice now - PermissionAuthorizationBehavior already confirmed the caller
+        // holds settings.roles before this handler runs, so the gate belongs on who is acting, not
+        // on which role is being touched.
+        if (role.IsSystem && !string.Equals(command.Name.Trim(), role.Name, StringComparison.Ordinal))
+            throw new UtanoDomainException("System role names cannot be changed.");
+
+        // Invariant: a practice must never end up with zero active roles holding settings.roles -
+        // otherwise nobody could ever manage roles/permissions again. Checks the real condition
+        // (does any other active role grant it) rather than a hardcoded "is this Admin" check, so
+        // it also protects a custom role that happens to be the practice's only role-manager.
+        var willStillManageRoles = command.IsActive && command.Permissions.Contains(ManageRolesPermission);
+        var currentlyManagesRoles = role.IsActive && role.GetPermissionKeys().Contains(ManageRolesPermission);
+
+        if (currentlyManagesRoles && !willStillManageRoles)
         {
-            if (!string.Equals(command.Name.Trim(), role.Name, StringComparison.Ordinal))
-                throw new UtanoDomainException("System role names cannot be changed.");
+            var otherActiveRoles = await db.Roles
+                .Include(r => r.Permissions)
+                .Where(r => r.PracticeId == currentUser.PracticeId && r.Id != role.Id && r.IsActive)
+                .ToListAsync(cancellationToken);
 
-            var currentPermissions = role.GetPermissionKeys().ToHashSet();
-            var requestedPermissions = command.Permissions.ToHashSet();
-            if (!currentPermissions.SetEquals(requestedPermissions))
+            var stillHasAManager = otherActiveRoles.Any(r => r.GetPermissionKeys().Contains(ManageRolesPermission));
+
+            if (!stillHasAManager)
                 throw new UtanoDomainException(
-                    "System role permissions are managed by the platform and cannot be edited directly.");
-
-            if (role.Name == SystemRoles.Admin && !command.IsActive)
-                throw new UtanoDomainException("The Admin role cannot be deactivated.");
+                    "This is the practice's only active role that can manage roles and permissions. Leave at least one other active role with 'settings.roles' before deactivating this one or removing that permission from it.");
         }
 
         role.Update(command.Name, command.Description);

@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using Utano.Module.Core.Authorization;
 using Utano.Module.Core.Exceptions;
 using Utano.Module.Core.Services;
+using Utano.Module.Identity.Configuration;
 using Utano.Module.Identity.Domain.Interfaces;
 using Utano.Module.Identity.Features;
 
@@ -33,7 +35,11 @@ public class ResetUserPasswordEndpoint(ISender sender) : ControllerBase
 }
 
 public record ResetUserPasswordBody(string NewPassword);
-public record ResetUserPasswordCommand(Guid UserId, string NewPassword) : IRequest<bool>;
+
+public record ResetUserPasswordCommand(Guid UserId, string NewPassword) : IRequest<bool>, IRequirePermission
+{
+    public string Permission => UtanoCoreModuleDescriptor.SettingsUsersManage;
+}
 
 public class ResetUserPasswordValidator : AbstractValidator<ResetUserPasswordCommand>
 {

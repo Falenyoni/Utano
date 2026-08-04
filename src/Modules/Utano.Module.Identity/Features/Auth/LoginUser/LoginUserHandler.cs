@@ -64,7 +64,8 @@ public class LoginUserHandler(
             .ToList();
 
         var subscriptionStatus = practice?.SubscriptionStatus ?? Domain.Entities.SubscriptionStatus.Trial;
-        var accessToken = tokenService.GenerateJwtToken(user, permissions, subscriptionStatus);
+        var subscriptionTier = practice?.SubscriptionTier ?? Domain.Entities.SubscriptionTier.Starter;
+        var accessToken = tokenService.GenerateJwtToken(user, permissions, subscriptionStatus, subscriptionTier);
         var refreshTokenValue = tokenService.GenerateRefreshToken();
 
         await writeRepository.AddRefreshTokenAsync(user.Id, refreshTokenValue, jwtSettings.Value.RefreshTokenExpiryDays, cancellationToken);

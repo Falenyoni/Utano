@@ -1,15 +1,19 @@
 using Hangfire;
 using Hangfire.Dashboard;
 using Hangfire.PostgreSql;
+using MediatR;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.OpenApi;
 using System.Globalization;
+using System.Threading.RateLimiting;
 using Utano.API.Filters;
 using Utano.API.Infrastructure.Services;
 using Utano.Module.Appointments.Configuration;
 using Utano.Module.Billing.Configuration;
 using Utano.Module.ClinicalNotes.Configuration;
+using Utano.Module.Core.Authorization;
 using Utano.Module.Core.Services;
 using Utano.Module.Identity.Configuration;
 using Utano.Module.Files.Configuration;
@@ -28,6 +32,31 @@ public static class AppConfiguration
 
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
         builder.Services.AddProblemDetails();
+
+        // "signup": public self-service registration has no auth of its own to lean on, so it
+        // gets its own rate limit - keyed per client IP, 5 attempts/hour. A genuine user retrying
+        // a typo'd field a couple of times is fine; a script spinning up fake trial practices
+        // isn't.
+        builder.Services.AddRateLimiter(options =>
+        {
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+            options.AddPolicy("signup", httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 5,
+                        Window = TimeSpan.FromHours(1),
+                        QueueLimit = 0,
+                    }));
+        });
+
+        // Open-generic registrations - apply to every request across every module's own
+        // AddMediatR() call, since they all resolve out of this same DI container.
+        // PermissionAuthorizationBehavior only checks requests implementing IRequirePermission.
+        // SubscriptionTierBehavior checks every request against its owning module's declared Plan.
+        builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(PermissionAuthorizationBehavior<,>));
+        builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(SubscriptionTierBehavior<,>));
 
         var allowedOrigins = builder.Configuration
             .GetSection("Cors:AllowedOrigins")
@@ -116,6 +145,7 @@ public static class AppConfiguration
         app.UseMiddleware<CancellationMiddleware>();
         app.UseMiddleware<ApiKeyMiddleware>();
         app.UseRouting();
+        app.UseRateLimiter();
 
         // The app's auth is JWT-in-header (SPA pattern), which a directly browser-navigated
         // dashboard can't carry - there's no cookie session to check a role against. Rather than

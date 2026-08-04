@@ -52,6 +52,25 @@ public class Practice : AggregateRoot
         UpdatedAt          = DateTimeOffset.UtcNow;
     }
 
+    // Extends from the current TrialEndsAt if it's still in the future (so "give them 2 more
+    // weeks" adds cleanly on top of whatever's left), or from now if the trial already lapsed but
+    // the status hasn't flipped to Starter yet (LoginUserHandler does that on next login) - either
+    // way the new date always lands meaningfully in the future.
+    public void ExtendTrial(int additionalDays)
+    {
+        if (SubscriptionStatus != Entities.SubscriptionStatus.Trial)
+            throw new UtanoDomainException("Practice is not currently on a trial.");
+        if (additionalDays <= 0)
+            throw new UtanoDomainException("Additional days must be positive.");
+
+        var baseline = TrialEndsAt.HasValue && TrialEndsAt.Value > DateTimeOffset.UtcNow
+            ? TrialEndsAt.Value
+            : DateTimeOffset.UtcNow;
+
+        TrialEndsAt = baseline.AddDays(additionalDays);
+        UpdatedAt   = DateTimeOffset.UtcNow;
+    }
+
     public void SetSubscription(string tier, string status, DateTimeOffset? expiresAt)
     {
         SubscriptionTier      = tier;

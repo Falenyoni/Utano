@@ -13,5 +13,14 @@ public class RolePermissionConfiguration : IEntityTypeConfiguration<RolePermissi
         builder.HasKey(rp => new { rp.RoleId, rp.PermissionKey });
 
         builder.Property(rp => rp.PermissionKey).HasMaxLength(100).IsRequired();
+
+        // Real referential integrity - a typo'd or orphaned permission key is now rejected at
+        // write time instead of silently inserting and never matching anything. Restrict (not
+        // cascade) on delete: a Permission row should never normally be deleted while roles still
+        // reference it.
+        builder.HasOne<Permission>()
+            .WithMany()
+            .HasForeignKey(rp => rp.PermissionKey)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -36,7 +36,8 @@ public class RefreshTokenHandler(
 
         var practice = await practiceRepository.GetByIdAsync(user.PracticeId, cancellationToken);
         var subscriptionStatus = practice?.SubscriptionStatus ?? SubscriptionStatus.Trial;
-        var newAccessToken = tokenService.GenerateJwtToken(user, permissions, subscriptionStatus);
+        var subscriptionTier = practice?.SubscriptionTier ?? SubscriptionTier.Starter;
+        var newAccessToken = tokenService.GenerateJwtToken(user, permissions, subscriptionStatus, subscriptionTier);
         var newRefreshTokenValue = tokenService.GenerateRefreshToken();
 
         // Revoke all active tokens — they are tracked entities, EF detects the change

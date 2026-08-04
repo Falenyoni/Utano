@@ -23,6 +23,12 @@ public class CurrentUserService(IHttpContextAccessor httpContextAccessor) : ICur
     public Guid PracticeId =>
         Guid.Parse(User?.FindFirstValue("PracticeId") ?? Guid.Empty.ToString());
 
+    // Empty means an old token issued before this claim existed - callers should treat that as
+    // "let it through," the same graceful-degradation SubscriptionMiddleware already uses for
+    // SubscriptionStatus, since the claim will be populated again on the next login/refresh.
+    public string SubscriptionTier =>
+        User?.FindFirstValue("SubscriptionTier") ?? string.Empty;
+
     public IReadOnlyList<string> Permissions =>
         User?.FindAll("permission").Select(c => c.Value).ToList() ?? [];
 
