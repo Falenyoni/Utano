@@ -40,7 +40,7 @@ Items are grouped into phases by **dependency and effort**, not just severity �
 *Real money risk — prioritize ahead of general polish.*
 
 - [x] **#24** — Turned out to be already fully built (direct `IBillingService` calls from `OpenVisitHandler`/`CompleteVisitHandler`/procedures/prescriptions, not a `VisitCompletedEvent` handler as assumed). Live-verified 2026-08-04; only real gap was frontend visibility (visit↔invoice link), fixed same day — see technical-debt doc.
-- [ ] **#32** — Forgot Password flow. Needs an email-provider decision (Resend was the leaning choice) — same decision Phase 10/#14 needs, make it once here.
+- [ ] **#32** — ⏸ Deferred by explicit decision (2026-08-04, "let's skip this we will do it later"). Forgot Password flow, needs an email-provider decision (Resend was the leaning choice) — same decision Phase 10/#14 needs, make it once here whenever it's picked back up.
 
 ## Phase 5 — File storage chain
 *Dependent — build in this exact order.*
@@ -52,10 +52,12 @@ Items are grouped into phases by **dependency and effort**, not just severity �
 ## Phase 6 — Cheap frontend-only batch
 *Good for a lighter week — zero backend work for any of these.*
 
-- [ ] **#25** — Billing invoices: quick month-preset filter buttons.
-- [ ] **#26** — Claims page: date range + medical-aid-scheme filters (backend already supports both).
-- [ ] **#22** — Move Low Stock's PDF export onto the Inventory page; drop the redundant Reports tab.
-- [ ] **#23** — Dashboard stat cards navigate to filtered views instead of unfiltered lists.
+- [x] **#25** — Billing invoices: quick month-preset filter buttons. *(fixed 2026-08-04)*
+- [x] **#26** — Claims page: date range + medical-aid-scheme filters. *(fixed 2026-08-04 — also had to add the `MedicalAidId` backend filter param, which turned out not to already exist)*
+- [x] **#22** — Moved Low Stock's PDF export onto the Inventory page; dropped the redundant Reports tab. *(fixed 2026-08-04)*
+- [x] **#23** — Dashboard stat cards navigate to filtered views instead of unfiltered lists. *(fixed 2026-08-04, all 4 cards — Overdue via #18, remaining 3 this phase)*
+
+**Phase 6 status: fully built and live-verified 2026-08-04.**
 
 ## Phase 7 — Bigger, unscoped features
 *Design pass needed before building — not urgent.*
