@@ -19,10 +19,14 @@ public class AppointmentReadRepository(AppointmentsDbContext context) : IAppoint
         Guid? patientId,
         Guid? doctorId,
         AppointmentStatus? status,
+        bool onlyOverdue,
         int page,
         int pageSize,
         CancellationToken cancellationToken = default)
     {
+        if (onlyOverdue)
+            return await GetOverduePagedAsync(patientId, doctorId, status, page, pageSize, cancellationToken);
+
         var query = context.Appointments.AsNoTracking();
 
         if (date.HasValue)
@@ -50,6 +54,49 @@ public class AppointmentReadRepository(AppointmentsDbContext context) : IAppoint
         {
             Data = items,
             TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize
+        };
+    }
+
+    private async Task<PagedResult<Appointment>> GetOverduePagedAsync(
+        Guid? patientId,
+        Guid? doctorId,
+        AppointmentStatus? status,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken)
+    {
+        // Coarse SQL filter to the statuses IsOverdue can ever be true for, then precise
+        // in-memory filter/sort/page - same pattern as the reminder/no-show scan jobs, since
+        // IsOverdue's DateOnly/TimeOnly comparison isn't reliably translatable to SQL. Tenant
+        // scoping still applies automatically via the global query filter (no IgnoreQueryFilters
+        // here, unlike the background jobs).
+        var query = context.Appointments
+            .AsNoTracking()
+            .Where(a =>
+                a.Status == AppointmentStatus.Scheduled || a.Status == AppointmentStatus.Confirmed ||
+                a.Status == AppointmentStatus.CheckedIn || a.Status == AppointmentStatus.InProgress);
+
+        if (patientId.HasValue)
+            query = query.Where(a => a.PatientId == patientId.Value);
+
+        if (doctorId.HasValue)
+            query = query.Where(a => a.DoctorId == doctorId.Value);
+
+        if (status.HasValue)
+            query = query.Where(a => a.Status == status.Value);
+
+        var overdue = (await query.ToListAsync(cancellationToken))
+            .Where(a => a.IsOverdue)
+            .OrderBy(a => a.AppointmentDate)
+            .ThenBy(a => a.StartTime)
+            .ToList();
+
+        return new PagedResult<Appointment>
+        {
+            Data = overdue.Skip((page - 1) * pageSize).Take(pageSize).ToList(),
+            TotalCount = overdue.Count,
             Page = page,
             PageSize = pageSize
         };

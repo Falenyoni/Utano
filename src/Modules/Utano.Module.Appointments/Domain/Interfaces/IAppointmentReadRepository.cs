@@ -7,11 +7,17 @@ namespace Utano.Module.Appointments.Domain.Interfaces;
 public interface IAppointmentReadRepository
 {
     Task<Appointment?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// When onlyOverdue is true, date is ignored (overdue is inherently cross-date) and the
+    /// result is IsOverdue-filtered practice-wide instead of date-scoped.
+    /// </summary>
     Task<PagedResult<Appointment>> GetPagedAsync(
         DateOnly? date,
         Guid? patientId,
         Guid? doctorId,
         AppointmentStatus? status,
+        bool onlyOverdue,
         int page,
         int pageSize,
         CancellationToken cancellationToken = default);

@@ -9,6 +9,7 @@ public record GetAppointmentsQuery(
     Guid? PatientId,
     Guid? DoctorId,
     AppointmentStatus? Status,
+    bool OnlyOverdue = false,
     int Page = 1,
     int PageSize = 20
 ) : IRequest<PagedResult<AppointmentSummaryResponse>>;

@@ -19,6 +19,7 @@ public class GetAppointmentsHandler(
             query.PatientId,
             query.DoctorId,
             query.Status,
+            query.OnlyOverdue,
             query.Page,
             query.PageSize,
             cancellationToken);

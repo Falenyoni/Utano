@@ -23,12 +23,13 @@ public class GetAppointmentsEndpoint(ISender sender) : ControllerBase
         [FromQuery] Guid? patientId,
         [FromQuery] Guid? doctorId,
         [FromQuery] AppointmentStatus? status,
+        [FromQuery] bool onlyOverdue = false,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
         var result = await sender.Send(
-            new GetAppointmentsQuery(date, patientId, doctorId, status, page, pageSize),
+            new GetAppointmentsQuery(date, patientId, doctorId, status, onlyOverdue, page, pageSize),
             cancellationToken);
         return Ok(result);
     }
