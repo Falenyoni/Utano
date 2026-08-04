@@ -49,6 +49,21 @@ public static class AppConfiguration
                         Window = TimeSpan.FromHours(1),
                         QueueLimit = 0,
                     }));
+
+            // "login": second layer alongside per-account lockout (User.RecordFailedLogin) -
+            // catches a distributed attack trying many different email addresses from one IP,
+            // which per-account lockout alone wouldn't. Deliberately more generous than the
+            // account lockout threshold so a shared office IP with several legitimate users isn't
+            // penalized for normal daily login traffic.
+            options.AddPolicy("login", httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 20,
+                        Window = TimeSpan.FromHours(1),
+                        QueueLimit = 0,
+                    }));
         });
 
         // Open-generic registrations - apply to every request across every module's own

@@ -30,10 +30,29 @@ public class LoginUserHandler(
         var user = await readRepository.GetByEmailAsync(command.Email, cancellationToken);
 
         if (user is null || !passwordService.Verify(command.Password, user.PasswordHash))
+        {
+            // Record the failed attempt even when the email doesn't exist would leak account
+            // existence via timing/behavior differences either way, so only the real-user path
+            // records anything - a nonexistent email already gets the same generic error with no
+            // side effects either way.
+            if (user is not null)
+            {
+                user.RecordFailedLogin();
+                await writeRepository.UpdateAsync(user, cancellationToken);
+            }
+
             throw new UtanoDomainException("Invalid email or password.");
+        }
+
+        if (user.IsLockedOut(DateTimeOffset.UtcNow))
+            throw new UtanoDomainException(
+                $"Too many failed login attempts. Please try again in {Math.Ceiling((user.LockedOutUntil!.Value - DateTimeOffset.UtcNow).TotalMinutes)} minute(s).");
 
         if (user.Status != UserStatus.Active)
             throw new UtanoDomainException("Your account is not active. Contact your administrator.");
+
+        user.RecordSuccessfulLogin();
+        await writeRepository.UpdateAsync(user, cancellationToken);
 
         var practice = await practiceRepository.GetByIdAsync(user.PracticeId, cancellationToken);
 

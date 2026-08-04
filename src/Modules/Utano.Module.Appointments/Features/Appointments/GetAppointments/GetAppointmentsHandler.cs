@@ -5,7 +5,10 @@ using Utano.Module.Core.Services;
 
 namespace Utano.Module.Appointments.Features.Appointments.GetAppointments;
 
-public class GetAppointmentsHandler(IAppointmentReadRepository readRepository, IVisitLookup visitLookup)
+public class GetAppointmentsHandler(
+    IAppointmentReadRepository readRepository,
+    IVisitLookup visitLookup,
+    IPatientDemographicsLookup demographicsLookup)
     : IRequestHandler<GetAppointmentsQuery, PagedResult<AppointmentSummaryResponse>>
 {
     public async Task<PagedResult<AppointmentSummaryResponse>> Handle(
@@ -23,22 +26,31 @@ public class GetAppointmentsHandler(IAppointmentReadRepository readRepository, I
         var visitIds = await visitLookup.GetVisitIdsForAppointmentsAsync(
             paged.Data.Select(a => a.Id), cancellationToken);
 
+        var demographics = await demographicsLookup.GetDemographicsAsync(
+            paged.Data.Select(a => a.PatientId), cancellationToken);
+
         return new PagedResult<AppointmentSummaryResponse>
         {
-            Data = paged.Data.Select(a => new AppointmentSummaryResponse(
-                a.Id,
-                a.PatientId,
-                a.PatientName,
-                a.DoctorId,
-                a.DoctorName,
-                a.AppointmentDate,
-                a.StartTime,
-                a.EndTime,
-                a.Type.ToString(),
-                a.Status.ToString(),
-                a.Notes,
-                a.CreatedAt,
-                visitIds.TryGetValue(a.Id, out var visitId) ? visitId : null)),
+            Data = paged.Data.Select(a =>
+            {
+                demographics.TryGetValue(a.PatientId, out var d);
+                return new AppointmentSummaryResponse(
+                    a.Id,
+                    a.PatientId,
+                    a.PatientName,
+                    a.DoctorId,
+                    a.DoctorName,
+                    a.AppointmentDate,
+                    a.StartTime,
+                    a.EndTime,
+                    a.Type.ToString(),
+                    a.Status.ToString(),
+                    a.Notes,
+                    a.CreatedAt,
+                    visitIds.TryGetValue(a.Id, out var visitId) ? visitId : null,
+                    d?.Gender,
+                    d?.DateOfBirth);
+            }),
             TotalCount = paged.TotalCount,
             Page = paged.Page,
             PageSize = paged.PageSize

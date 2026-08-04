@@ -19,6 +19,8 @@ public class User : AggregateRoot
     public string Role { get; private set; } = null!;
     public string? Specialty { get; private set; }
     public UserStatus Status { get; private set; }
+    public int FailedLoginAttempts { get; private set; }
+    public DateTimeOffset? LockedOutUntil { get; private set; }
 
     public string FullName => $"{FirstName} {LastName}";
     public IReadOnlyCollection<RefreshToken> RefreshTokens => _refreshTokens.AsReadOnly();
@@ -111,6 +113,26 @@ public class User : AggregateRoot
         if (string.IsNullOrWhiteSpace(newPasswordHash))
             throw new UtanoDomainException("Password hash is required.");
         PasswordHash = newPasswordHash;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    private const int MaxFailedLoginAttempts = 5;
+    private static readonly TimeSpan LockoutDuration = TimeSpan.FromMinutes(15);
+
+    public bool IsLockedOut(DateTimeOffset now) => LockedOutUntil.HasValue && LockedOutUntil.Value > now;
+
+    public void RecordFailedLogin()
+    {
+        FailedLoginAttempts++;
+        if (FailedLoginAttempts >= MaxFailedLoginAttempts)
+            LockedOutUntil = DateTimeOffset.UtcNow.Add(LockoutDuration);
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void RecordSuccessfulLogin()
+    {
+        FailedLoginAttempts = 0;
+        LockedOutUntil = null;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 }

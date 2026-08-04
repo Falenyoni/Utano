@@ -15,5 +15,7 @@ public record GetAppointmentByIdResponse(
     string? CancellationReason,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt,
-    Guid? VisitId
+    Guid? VisitId,
+    string? PatientGender,
+    DateOnly? PatientDateOfBirth
 );

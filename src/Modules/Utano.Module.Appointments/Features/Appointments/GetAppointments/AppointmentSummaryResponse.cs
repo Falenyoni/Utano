@@ -13,5 +13,7 @@ public record AppointmentSummaryResponse(
     string Status,
     string? Notes,
     DateTimeOffset CreatedAt,
-    Guid? VisitId
+    Guid? VisitId,
+    string? PatientGender,
+    DateOnly? PatientDateOfBirth
 );

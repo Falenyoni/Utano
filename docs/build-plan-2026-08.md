@@ -17,14 +17,16 @@ Items are grouped into phases by **dependency and effort**, not just severity �
 - [x] **#3** — Subscription-tier server-side enforcement. Must land before Phase 4/#14 regardless. *(built 2026-08-03 — `SubscriptionTierBehavior`, assembly-matched to module `Plan`; confirmed Trial correctly gets full Professional access)*
 - [x] **#37 (new, found during Phase 1)** — Trial extension was impossible (`StartTrial` only ever called once). Fixed: `Practice.ExtendTrial()` + `POST /api/admin/practices/{id}/extend-trial`. *(built 2026-08-03)*
 
-**Phase 1 status: all code built and build-verified. Final `Update-Database` run pending, then full live test before moving to Phase 2.**
+**Phase 1 status: fully built, migrated, and live-verified 2026-08-03/04** — RBAC enforcement, tier enforcement, trial extension, and self-signup (#38, added mid-phase) all confirmed working end-to-end against the real DB.
 
 ## Phase 2 — Quick, high-value bug fixes
 *Small enough to do anytime — even as a warm-up before Phase 1.*
 
-- [ ] **#36** — Financial page currency label (hardcoded "R", should be "$"). Minutes of work.
-- [ ] **#20** — Demographics report data bug: thread `patientGender`/`patientDateOfBirth` through the 3 "Open Visit" navigation call sites.
-- [ ] **#31** — Login brute-force/lockout protection.
+- [x] **#36** — Financial page currency label (hardcoded "R", should be "$"). *(fixed 2026-08-04, 21 occurrences)*
+- [x] **#20** — Demographics report data bug: thread `patientGender`/`patientDateOfBirth` through the 3 "Open Visit" navigation call sites. *(fixed + live-verified 2026-08-04 — new `IPatientDemographicsLookup`, plus a second bug caught in `NewVisitPage.tsx` that would've silently broken the fix)*
+- [x] **#31** — Login brute-force/lockout protection. *(fixed + live-verified 2026-08-04 — account lockout + IP rate limit, migration `AddLoginLockout`)*
+
+**Phase 2 status: fully built and live-verified 2026-08-04.**
 
 ## Phase 3 — Needs a decision before it can be scoped
 *Bring these back for a quick decision, then they slot into a later phase.*

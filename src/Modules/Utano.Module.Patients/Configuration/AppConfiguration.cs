@@ -30,6 +30,7 @@ public static class AppConfiguration
         services.AddScoped<IPatientWriteRepository, PatientWriteRepository>();
         services.AddScoped<IMedicalAidRepository, MedicalAidRepository>();
         services.AddScoped<IPatientStatusChecker, PatientStatusChecker>();
+        services.AddScoped<IPatientDemographicsLookup, PatientDemographicsLookup>();
         services.AddSingleton<IModuleDescriptor, PatientsModuleDescriptor>();
 
         return services;
