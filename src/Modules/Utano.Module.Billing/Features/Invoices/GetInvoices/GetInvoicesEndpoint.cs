@@ -27,12 +27,13 @@ public class GetInvoicesEndpoint(ISender sender) : ControllerBase
         [FromQuery] bool? hasMedicalAid,
         [FromQuery] string? medAidClaimStatus,
         [FromQuery] bool? outstanding,
+        [FromQuery] Guid? visitId,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
         var result = await sender.Send(
-            new GetInvoicesQuery(patientName, status, dateFrom, dateTo, hasMedicalAid, medAidClaimStatus, outstanding, page, pageSize), ct);
+            new GetInvoicesQuery(patientName, status, dateFrom, dateTo, hasMedicalAid, medAidClaimStatus, outstanding, visitId, page, pageSize), ct);
         return Ok(result);
     }
 }
@@ -42,6 +43,7 @@ public record GetInvoicesQuery(
     string? DateFrom, string? DateTo,
     bool? HasMedicalAid, string? MedAidClaimStatus,
     bool? Outstanding,
+    Guid? VisitId,
     int Page, int PageSize) : IRequest<PagedResult<InvoiceSummary>>;
 
 public record InvoiceSummary(
@@ -80,6 +82,9 @@ public class GetInvoicesHandler(BillingDbContext db) : IRequestHandler<GetInvoic
 
         if (Enum.TryParse<MedAidClaimStatus>(q.MedAidClaimStatus, true, out var claimStatus))
             query = query.Where(i => i.MedAidClaimStatus == claimStatus);
+
+        if (q.VisitId.HasValue)
+            query = query.Where(i => i.VisitId == q.VisitId.Value);
 
         var total = await query.CountAsync(ct);
         var items = await query

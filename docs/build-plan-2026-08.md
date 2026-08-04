@@ -39,7 +39,7 @@ Items are grouped into phases by **dependency and effort**, not just severity �
 ## Phase 4 — Revenue-integrity work
 *Real money risk — prioritize ahead of general polish.*
 
-- [ ] **#24** — Billing handler subscribing to the existing `VisitCompletedEvent`, auto-creates a draft invoice linked to the visit. (Event already exists — only the handler is new.)
+- [x] **#24** — Turned out to be already fully built (direct `IBillingService` calls from `OpenVisitHandler`/`CompleteVisitHandler`/procedures/prescriptions, not a `VisitCompletedEvent` handler as assumed). Live-verified 2026-08-04; only real gap was frontend visibility (visit↔invoice link), fixed same day — see technical-debt doc.
 - [ ] **#32** — Forgot Password flow. Needs an email-provider decision (Resend was the leaning choice) — same decision Phase 10/#14 needs, make it once here.
 
 ## Phase 5 — File storage chain
