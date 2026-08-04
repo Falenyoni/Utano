@@ -19,7 +19,10 @@ public static class AppConfiguration
             options.UseNpgsql(configuration.GetConnectionString("UtanoDb")));
 
         services.AddMediatR(cfg =>
-            cfg.RegisterServicesFromAssembly(typeof(AppConfiguration).Assembly));
+        {
+            cfg.LicenseKey = configuration["MEDIATR_LICENSE_KEY"];
+            cfg.RegisterServicesFromAssembly(typeof(AppConfiguration).Assembly);
+        });
 
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddSingleton<IModuleDescriptor, NotificationsModuleDescriptor>();

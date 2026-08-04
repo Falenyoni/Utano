@@ -22,7 +22,10 @@ public static class AppConfiguration
             configuration.GetSection("FileStorage"));
 
         services.AddMediatR(cfg =>
-            cfg.RegisterServicesFromAssembly(typeof(AppConfiguration).Assembly));
+        {
+            cfg.LicenseKey = configuration["MEDIATR_LICENSE_KEY"];
+            cfg.RegisterServicesFromAssembly(typeof(AppConfiguration).Assembly);
+        });
 
         services.AddScoped<IFileAttachmentRepository, FileAttachmentRepository>();
         services.AddSingleton<IFileStorageService, R2FileStorageService>();
