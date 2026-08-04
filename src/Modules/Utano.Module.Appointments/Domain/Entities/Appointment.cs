@@ -28,6 +28,16 @@ public class Appointment : AggregateRoot, IHasDomainEvents
     public string? CancellationReason { get; private set; }
     public DateTimeOffset? RemindedAt { get; private set; }
 
+    // Computed, not stored - covers both "will become NoShow soon" (Scheduled/Confirmed, past end
+    // time - AppointmentNoShowScanJob will pick these up) and "stuck, needs staff attention"
+    // (CheckedIn/InProgress past end time - deliberately never auto-transitioned, since the
+    // patient did show up). Single source of truth so GetAppointments/GetAppointmentById don't
+    // duplicate this rule.
+    public bool IsOverdue =>
+        Status is AppointmentStatus.Scheduled or AppointmentStatus.Confirmed
+            or AppointmentStatus.CheckedIn or AppointmentStatus.InProgress
+        && new DateTimeOffset(AppointmentDate.ToDateTime(EndTime), TimeSpan.Zero) < DateTimeOffset.UtcNow;
+
     public static Appointment Book(
         Guid practiceId,
         Guid patientId,

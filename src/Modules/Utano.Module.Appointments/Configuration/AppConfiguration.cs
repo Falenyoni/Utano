@@ -44,6 +44,9 @@ public static class AppConfiguration
         services.Configure<AppointmentReminderSettings>(configuration.GetSection("AppointmentReminders"));
         services.AddScoped<AppointmentReminderScanJob>();
 
+        services.Configure<AppointmentNoShowSettings>(configuration.GetSection("AppointmentNoShow"));
+        services.AddScoped<AppointmentNoShowScanJob>();
+
         return services;
     }
 
@@ -52,6 +55,11 @@ public static class AppConfiguration
         var recurringJobs = application.Services.GetRequiredService<IRecurringJobManager>();
         recurringJobs.AddOrUpdate<AppointmentReminderScanJob>(
             "appointment-reminder-scan",
+            job => job.RunAsync(CancellationToken.None),
+            Cron.MinuteInterval(15));
+
+        recurringJobs.AddOrUpdate<AppointmentNoShowScanJob>(
+            "appointment-noshow-scan",
             job => job.RunAsync(CancellationToken.None),
             Cron.MinuteInterval(15));
 

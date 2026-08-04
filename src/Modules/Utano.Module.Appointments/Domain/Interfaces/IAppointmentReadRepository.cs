@@ -38,4 +38,14 @@ public interface IAppointmentReadRepository
     Task<IReadOnlyList<Appointment>> GetAppointmentsNeedingReminderAsync(
         DateTimeOffset remindByCutoff,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Across ALL practices - for the no-show scan background job. Only Scheduled/Confirmed
+    /// (never checked in) appointments whose end time is more than gracePeriod in the past -
+    /// CheckedIn/InProgress are deliberately excluded here since the patient did show up; those
+    /// are surfaced as "overdue" for staff attention instead, never auto-transitioned.
+    /// </summary>
+    Task<IReadOnlyList<Appointment>> GetAppointmentsPastNoShowGraceAsync(
+        TimeSpan gracePeriod,
+        CancellationToken cancellationToken = default);
 }

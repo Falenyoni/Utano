@@ -17,5 +17,6 @@ public record GetAppointmentByIdResponse(
     DateTimeOffset UpdatedAt,
     Guid? VisitId,
     string? PatientGender,
-    DateOnly? PatientDateOfBirth
+    DateOnly? PatientDateOfBirth,
+    bool IsOverdue
 );

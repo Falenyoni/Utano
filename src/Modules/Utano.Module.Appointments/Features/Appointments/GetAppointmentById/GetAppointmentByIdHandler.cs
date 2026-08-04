@@ -38,6 +38,7 @@ public class GetAppointmentByIdHandler(
             appointment.UpdatedAt,
             visitIds.TryGetValue(appointment.Id, out var visitId) ? visitId : null,
             d?.Gender,
-            d?.DateOfBirth);
+            d?.DateOfBirth,
+            appointment.IsOverdue);
     }
 }

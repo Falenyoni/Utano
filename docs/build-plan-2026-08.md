@@ -31,8 +31,10 @@ Items are grouped into phases by **dependency and effort**, not just severity �
 ## Phase 3 — Needs a decision before it can be scoped
 *Bring these back for a quick decision, then they slot into a later phase.*
 
-- [ ] **#19** — Consultations "+ Open Visit" button: remove entirely (route everyone through Walk-In), or keep as a clearly-labelled no-appointment exception path?
-- [ ] **#18** — Overdue/No-show handling: automatic vs. manual `NoShow`, grace period if automatic, standalone "overdue" UI indicator, and whether stuck `InProgress` visits need the same or separate handling.
+- [x] **#19** — Consultations "+ Open Visit" button: removed entirely, routes everyone through Walk-In. *(decided + built 2026-08-04)*
+- [x] **#18** — Overdue/No-show handling: automatic `NoShow` after 1hr grace period (Hangfire scan job), computed `IsOverdue` field, "Overdue" UI badge on Appointments/Waiting Room/Dashboard, stuck `CheckedIn`/`InProgress` flagged not auto-transitioned. *(decided + built + partially live-verified 2026-08-04 — see technical-debt doc for the production-Hangfire-race caveat on full end-to-end verification)*
+
+**Phase 3 status: fully built 2026-08-04.**
 
 ## Phase 4 — Revenue-integrity work
 *Real money risk — prioritize ahead of general polish.*

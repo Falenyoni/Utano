@@ -98,6 +98,31 @@ public class AppointmentReadRepository(AppointmentsDbContext context) : IAppoint
             .ToList();
     }
 
+    public async Task<IReadOnlyList<Appointment>> GetAppointmentsPastNoShowGraceAsync(
+        TimeSpan gracePeriod, CancellationToken cancellationToken = default)
+    {
+        var nowUtc = DateTimeOffset.UtcNow;
+
+        // Same coarse-SQL-filter-then-precise-in-memory pattern as the reminder scan - DateOnly/
+        // TimeOnly combination isn't reliably translatable to SQL. IgnoreQueryFilters deliberate:
+        // background job, no per-request practice context.
+        var candidates = await context.Appointments
+            .IgnoreQueryFilters()
+            .AsNoTracking()
+            .Where(a =>
+                (a.Status == AppointmentStatus.Scheduled || a.Status == AppointmentStatus.Confirmed) &&
+                a.AppointmentDate <= DateOnly.FromDateTime(nowUtc.UtcDateTime))
+            .ToListAsync(cancellationToken);
+
+        return candidates
+            .Where(a =>
+            {
+                var endsAt = new DateTimeOffset(a.AppointmentDate.ToDateTime(a.EndTime), TimeSpan.Zero);
+                return endsAt.Add(gracePeriod) <= nowUtc;
+            })
+            .ToList();
+    }
+
     public async Task<bool> HasConflictAsync(
         Guid practiceId,
         Guid doctorId,

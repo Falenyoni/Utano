@@ -49,7 +49,8 @@ public class GetAppointmentsHandler(
                     a.CreatedAt,
                     visitIds.TryGetValue(a.Id, out var visitId) ? visitId : null,
                     d?.Gender,
-                    d?.DateOfBirth);
+                    d?.DateOfBirth,
+                    a.IsOverdue);
             }),
             TotalCount = paged.TotalCount,
             Page = paged.Page,
