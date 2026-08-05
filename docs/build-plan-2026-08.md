@@ -23,7 +23,7 @@ Items are grouped into phases by **dependency and effort**, not just severity �
 *Small enough to do anytime — even as a warm-up before Phase 1.*
 
 - [x] **#36** — Financial page currency label (hardcoded "R", should be "$"). *(fixed 2026-08-04, 21 occurrences)*
-- [x] **#20** — Demographics report data bug: thread `patientGender`/`patientDateOfBirth` through the 3 "Open Visit" navigation call sites. *(fixed + live-verified 2026-08-04 — new `IPatientDemographicsLookup`, plus a second bug caught in `NewVisitPage.tsx` that would've silently broken the fix)*
+- [x] **#20** — Demographics report data bug. *(fixed 2026-08-04 by threading `patientGender`/`patientDateOfBirth` through nav state onto `Visit` — turned out not to actually work on real data; correctly re-fixed 2026-08-05 with a live `IPatientDemographicsLookup` call in `VisitDemographicsHandler` instead, and all the 2026-08-04 threading deleted as unnecessary. See technical-debt doc for the full story.)*
 - [x] **#31** — Login brute-force/lockout protection. *(fixed + live-verified 2026-08-04 — account lockout + IP rate limit, migration `AddLoginLockout`)*
 
 **Phase 2 status: fully built and live-verified 2026-08-04.**

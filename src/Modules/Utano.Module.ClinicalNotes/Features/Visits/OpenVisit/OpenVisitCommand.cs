@@ -10,7 +10,5 @@ public record OpenVisitCommand(
     DateOnly VisitDate,
     Guid? AppointmentId = null,
     string? Department = null,
-    string? PatientGender = null,
-    DateOnly? PatientDateOfBirth = null,
     string? Specialty = null
 ) : IRequest<OpenVisitResponse>;

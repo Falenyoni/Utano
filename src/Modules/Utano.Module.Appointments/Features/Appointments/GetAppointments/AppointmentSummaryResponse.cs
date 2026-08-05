@@ -14,7 +14,5 @@ public record AppointmentSummaryResponse(
     string? Notes,
     DateTimeOffset CreatedAt,
     Guid? VisitId,
-    string? PatientGender,
-    DateOnly? PatientDateOfBirth,
     bool IsOverdue
 );

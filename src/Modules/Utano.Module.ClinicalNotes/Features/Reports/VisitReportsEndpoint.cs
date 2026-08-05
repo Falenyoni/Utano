@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
 using Utano.Module.ClinicalNotes.DatabaseMappings;
+using Utano.Module.Core.Services;
 
 namespace Utano.Module.ClinicalNotes.Features.Reports;
 
@@ -97,7 +98,7 @@ public record VisitDemographicsResponse(
     AgeGroupBreakdown OverallAgeGroups,
     IReadOnlyList<DoctorDemographicsRow> ByDoctor);
 
-public class VisitDemographicsHandler(ClinicalNotesDbContext db)
+public class VisitDemographicsHandler(ClinicalNotesDbContext db, IPatientDemographicsLookup demographicsLookup)
     : IRequestHandler<VisitDemographicsQuery, VisitDemographicsResponse>
 {
     public async Task<VisitDemographicsResponse> Handle(VisitDemographicsQuery q, CancellationToken ct)
@@ -110,8 +111,17 @@ public class VisitDemographicsHandler(ClinicalNotesDbContext db)
             query = query.Where(v => v.VisitDate <= to);
 
         var visits = await query
-            .Select(v => new { v.DoctorName, v.PatientGender, v.PatientDateOfBirth, v.VisitDate })
+            .Select(v => new { v.DoctorName, v.PatientId, v.VisitDate })
             .ToListAsync(ct);
+
+        // Live lookup rather than a denormalized copy on Visit - gender/DOB don't change, so this
+        // is always correct (including for visits opened before this lookup existed) and needs no
+        // backfill, unlike the Visit columns this replaced.
+        var demographics = await demographicsLookup.GetDemographicsAsync(
+            visits.Select(v => v.PatientId), ct);
+
+        string? GenderOf(Guid patientId) => demographics.TryGetValue(patientId, out var d) ? d.Gender : null;
+        DateOnly? DobOf(Guid patientId) => demographics.TryGetValue(patientId, out var d) ? d.DateOfBirth : null;
 
         static GenderBreakdown CalcGender(IEnumerable<string?> genders)
         {
@@ -141,15 +151,15 @@ public class VisitDemographicsHandler(ClinicalNotesDbContext db)
         }
 
         var overall = new VisitDemographicsResponse(
-            CalcGender(visits.Select(v => v.PatientGender)),
-            CalcAgeGroups(visits.Select(v => (v.PatientDateOfBirth, v.VisitDate))),
+            CalcGender(visits.Select(v => GenderOf(v.PatientId))),
+            CalcAgeGroups(visits.Select(v => (DobOf(v.PatientId), v.VisitDate))),
             visits
                 .GroupBy(v => v.DoctorName)
                 .Select(g => new DoctorDemographicsRow(
                     g.Key,
                     g.Count(),
-                    CalcGender(g.Select(v => v.PatientGender)),
-                    CalcAgeGroups(g.Select(v => (v.PatientDateOfBirth, v.VisitDate)))))
+                    CalcGender(g.Select(v => GenderOf(v.PatientId))),
+                    CalcAgeGroups(g.Select(v => (DobOf(v.PatientId), v.VisitDate)))))
                 .OrderByDescending(r => r.Total)
                 .ToList());
 

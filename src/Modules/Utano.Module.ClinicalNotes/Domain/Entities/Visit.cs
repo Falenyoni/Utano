@@ -21,8 +21,6 @@ public class Visit : AggregateRoot, IHasDomainEvents
     public string DoctorName { get; private set; } = null!;
     public DateOnly VisitDate { get; private set; }
     public Guid? AppointmentId { get; private set; }
-    public string? PatientGender { get; private set; }
-    public DateOnly? PatientDateOfBirth { get; private set; }
 
     // Vitals
     public int? BloodPressureSystolic { get; private set; }
@@ -58,8 +56,6 @@ public class Visit : AggregateRoot, IHasDomainEvents
         DateOnly visitDate,
         Guid? appointmentId = null,
         string? department = null,
-        string? patientGender = null,
-        DateOnly? patientDateOfBirth = null,
         string? specialty = null)
     {
         if (string.IsNullOrWhiteSpace(patientName))
@@ -79,8 +75,6 @@ public class Visit : AggregateRoot, IHasDomainEvents
             AppointmentId = appointmentId,
             Department = department?.Trim(),
             Specialty = specialty?.Trim(),
-            PatientGender = patientGender,
-            PatientDateOfBirth = patientDateOfBirth,
             Status = VisitStatus.InProgress,
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow

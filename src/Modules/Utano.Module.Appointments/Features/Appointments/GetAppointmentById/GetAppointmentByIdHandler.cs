@@ -7,8 +7,7 @@ namespace Utano.Module.Appointments.Features.Appointments.GetAppointmentById;
 
 public class GetAppointmentByIdHandler(
     IAppointmentReadRepository readRepository,
-    IVisitLookup visitLookup,
-    IPatientDemographicsLookup demographicsLookup)
+    IVisitLookup visitLookup)
     : IRequestHandler<GetAppointmentByIdQuery, GetAppointmentByIdResponse?>
 {
     public async Task<GetAppointmentByIdResponse?> Handle(
@@ -18,8 +17,6 @@ public class GetAppointmentByIdHandler(
         if (appointment is null) return null;
 
         var visitIds = await visitLookup.GetVisitIdsForAppointmentsAsync([appointment.Id], cancellationToken);
-        var demographics = await demographicsLookup.GetDemographicsAsync([appointment.PatientId], cancellationToken);
-        demographics.TryGetValue(appointment.PatientId, out var d);
 
         return new GetAppointmentByIdResponse(
             appointment.Id,
@@ -37,8 +34,6 @@ public class GetAppointmentByIdHandler(
             appointment.CreatedAt,
             appointment.UpdatedAt,
             visitIds.TryGetValue(appointment.Id, out var visitId) ? visitId : null,
-            d?.Gender,
-            d?.DateOfBirth,
             appointment.IsOverdue);
     }
 }
