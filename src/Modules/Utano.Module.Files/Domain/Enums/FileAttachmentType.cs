@@ -9,5 +9,6 @@ public enum FileAttachmentType
     Prescription,
     ConsentForm,
     InsuranceDocument,
-    Other
+    Other,
+    Logo
 }

@@ -3,12 +3,17 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using Utano.Module.Core.Authorization;
 using Utano.Module.Files.Domain.Enums;
 using Utano.Module.Files.Domain.Interfaces;
 
 namespace Utano.Module.Files.Features.Files.ListFiles;
 
-public record ListFilesQuery(Guid PatientId, FileAttachmentType? Type) : IRequest<IReadOnlyList<FileAttachmentDto>>;
+public record ListFilesQuery(Guid PatientId, FileAttachmentType? Type)
+    : IRequest<IReadOnlyList<FileAttachmentDto>>, IRequirePermission
+{
+    public string Permission => "patients.view";
+}
 
 public record FileAttachmentDto(
     Guid Id,
@@ -45,7 +50,7 @@ public class ListFilesHandler(IFileAttachmentRepository repository)
 
         return files.Select(f => new FileAttachmentDto(
             f.Id,
-            f.PatientId,
+            f.PatientId!.Value,
             f.ConsultationId,
             f.FileName,
             f.ContentType,

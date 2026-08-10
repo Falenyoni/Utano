@@ -22,6 +22,7 @@ public class PracticeConfiguration : IEntityTypeConfiguration<Practice>
         builder.Property(p => p.BpNumber).HasMaxLength(50);
         builder.Property(p => p.PrimaryColor).HasMaxLength(20);
         builder.Property(p => p.LogoBase64);
+        builder.Property(p => p.LogoFileId);
         builder.Property(p => p.SubscriptionTier).HasMaxLength(20).IsRequired().HasDefaultValue("Starter");
         builder.Property(p => p.SubscriptionStatus).HasMaxLength(20).IsRequired().HasDefaultValue("Trial");
         builder.Property(p => p.TrialEndsAt);

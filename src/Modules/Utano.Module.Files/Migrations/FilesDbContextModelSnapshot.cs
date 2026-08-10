@@ -63,7 +63,7 @@ namespace Utano.Module.Files.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
-                    b.Property<Guid>("PatientId")
+                    b.Property<Guid?>("PatientId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("PracticeId")

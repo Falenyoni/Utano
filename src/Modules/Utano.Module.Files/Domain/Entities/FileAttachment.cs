@@ -8,7 +8,7 @@ public class FileAttachment : AggregateRoot
 {
     private FileAttachment() { }
 
-    public Guid PatientId { get; private set; }
+    public Guid? PatientId { get; private set; }
     public Guid? ConsultationId { get; private set; }
     public string FileName { get; private set; } = null!;
     public string ObjectKey { get; private set; } = null!;
@@ -20,7 +20,7 @@ public class FileAttachment : AggregateRoot
 
     public static FileAttachment Create(
         Guid practiceId,
-        Guid patientId,
+        Guid? patientId,
         string fileName,
         string objectKey,
         string contentType,
@@ -30,7 +30,7 @@ public class FileAttachment : AggregateRoot
         string? description = null)
     {
         if (practiceId == Guid.Empty) throw new UtanoDomainException("Practice is required.");
-        if (patientId == Guid.Empty) throw new UtanoDomainException("Patient is required.");
+        if (patientId == Guid.Empty) throw new UtanoDomainException("Patient is required when a patient is specified.");
         if (string.IsNullOrWhiteSpace(fileName)) throw new UtanoDomainException("File name is required.");
         if (string.IsNullOrWhiteSpace(objectKey)) throw new UtanoDomainException("Object key is required.");
         if (sizeBytes <= 0) throw new UtanoDomainException("File size must be greater than zero.");

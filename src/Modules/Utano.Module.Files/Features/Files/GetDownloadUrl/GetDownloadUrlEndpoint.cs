@@ -3,12 +3,16 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using Utano.Module.Core.Authorization;
 using Utano.Module.Core.Exceptions;
 using Utano.Module.Files.Domain.Interfaces;
 
 namespace Utano.Module.Files.Features.Files.GetDownloadUrl;
 
-public record GetDownloadUrlQuery(Guid Id) : IRequest<GetDownloadUrlResponse>;
+public record GetDownloadUrlQuery(Guid Id) : IRequest<GetDownloadUrlResponse>, IRequirePermission
+{
+    public string Permission => "patients.view";
+}
 
 public record GetDownloadUrlResponse(string DownloadUrl, string FileName, string ContentType);
 

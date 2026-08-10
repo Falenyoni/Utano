@@ -45,9 +45,11 @@ Items are grouped into phases by **dependency and effort**, not just severity �
 ## Phase 5 — File storage chain
 *Dependent — build in this exact order.*
 
-- [ ] **#35** — Extend the R2 object-key scheme for practice-level (non-patient) assets; make `FileAttachment.PatientId` optional.
-- [ ] **#33** — Move the practice logo onto R2; stop embedding base64 in login/branding responses.
-- [ ] **#17** — Patient document upload/viewer UI (dropzone, list, viewer modal) — biggest of the three, reuses the infra the first two steps extend.
+- [x] **#35** — Extended the R2 object-key scheme for practice-level (non-patient) assets (`{practiceId}/_practice/{type}/{uuid}.{ext}`); `FileAttachment.PatientId` now nullable; added `IFileAttachmentLookup` (Core cross-module interface, mirrors `IVisitLookup`/`IPatientDemographicsLookup`) and permission checks on all 4 Files endpoints. Built 2026-08-10. **Also found and fixed a real bug**: the module's original migration was scaffolded into a mistaken duplicated path (`src/Modules/Modules/...`) back on 2026-07-18 and was never actually picked up by the real project — `FileAttachments` had never been created in any database. Regenerated cleanly as `InitFilesModule` in the correct location.
+- [x] **#33** — Practice logo moved onto R2 (`Practice.LogoFileId` replacing `LogoBase64` for new uploads); login/branding/practice responses now resolve a fresh presigned `LogoUrl` instead of embedding base64. One-off API-key-gated `POST /api/admin/practices/migrate-branding-logos` backfills any practice's existing base64 logo into R2 — `LogoBase64` column deliberately kept for now, drop it in a follow-up migration once the backfill's been checked live. Built 2026-08-10.
+- [x] **#17** — Patient document upload/viewer UI: `PatientDocuments.tsx` (upload modal with type selector, list, delete) wired into `PatientDetailModal`; viewer shows images inline, PDFs via `<iframe>`, other types as a download link. Built 2026-08-10, `npx tsc --noEmit` clean.
+
+**Phase 5 status: code-complete 2026-08-10, not yet migrated/live-tested.** See PMC commands and the one-off logo-migration step in the handoff notes for this session.
 
 ## Phase 6 — Cheap frontend-only batch
 *Good for a lighter week — zero backend work for any of these.*
@@ -69,7 +71,7 @@ Items are grouped into phases by **dependency and effort**, not just severity �
 ## Phase 8 — Patient model change
 *Bigger domain change — touches registration form + duplicate-check logic. Own focused session.*
 
-- [x] **#29** — Replaced `NationalId` with a typed `PatientIdentifier` (NationalId | Passport | Pending), covering newborns, foreign patients, and ID-less walk-ins. Built 2026-08-10 (see `docs/adr/0001-typed-patient-identifier.md`). Code-complete on both repos; **live verification still pending** — blocked on `Update-Database -Context PatientsDbContext` being run against the real DB.
+- [x] **#29** — Replaced `NationalId` with a typed `PatientIdentifier` (NationalId | Passport | Pending), covering newborns, foreign patients, and ID-less walk-ins. Built 2026-08-10 (see `docs/adr/0001-typed-patient-identifier.md`). Migration run, live-tested by Bongani 2026-08-10 — confirmed working.
 
 ## Phase 9 — Modal cleanup
 *No correctness risk — whenever there's a lighter week.*

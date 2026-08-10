@@ -12,7 +12,7 @@ using Utano.Module.Files.DatabaseMappings;
 namespace Utano.Module.Files.Migrations
 {
     [DbContext(typeof(FilesDbContext))]
-    [Migration("20260718074017_InitFilesModule")]
+    [Migration("20260810161452_InitFilesModule")]
     partial class InitFilesModule
     {
         /// <inheritdoc />
@@ -66,7 +66,7 @@ namespace Utano.Module.Files.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
-                    b.Property<Guid>("PatientId")
+                    b.Property<Guid?>("PatientId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("PracticeId")

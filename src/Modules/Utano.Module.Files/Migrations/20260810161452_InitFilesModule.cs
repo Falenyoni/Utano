@@ -16,7 +16,7 @@ namespace Utano.Module.Files.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    PatientId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PatientId = table.Column<Guid>(type: "uuid", nullable: true),
                     ConsultationId = table.Column<Guid>(type: "uuid", nullable: true),
                     FileName = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     ObjectKey = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),

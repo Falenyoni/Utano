@@ -10,7 +10,7 @@ public record LoginUserResponse(
     Guid PracticeId,
     string PracticeName,
     string? PrimaryColor,
-    string? LogoBase64,
+    string? LogoUrl,
     bool HasDispensary,
     string SubscriptionTier,
     string SubscriptionStatus,

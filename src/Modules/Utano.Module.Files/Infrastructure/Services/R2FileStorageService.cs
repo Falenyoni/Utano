@@ -65,4 +65,19 @@ public class R2FileStorageService : IFileStorageService
     {
         await _client.DeleteObjectAsync(_settings.BucketName, objectKey, ct);
     }
+
+    public async Task UploadAsync(string objectKey, byte[] data, string contentType, CancellationToken ct = default)
+    {
+        using var stream = new MemoryStream(data);
+        var request = new PutObjectRequest
+        {
+            BucketName = _settings.BucketName,
+            Key = objectKey,
+            InputStream = stream,
+            ContentType = contentType,
+            AutoCloseStream = false,
+        };
+
+        await _client.PutObjectAsync(request, ct);
+    }
 }

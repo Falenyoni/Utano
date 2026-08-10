@@ -2,6 +2,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Options;
 using Utano.Module.Core.Exceptions;
+using Utano.Module.Core.Services;
 using Utano.Module.Identity.Configuration;
 using Utano.Module.Identity.Domain.Enums;
 using Utano.Module.Identity.Domain.Interfaces;
@@ -17,6 +18,7 @@ public class LoginUserHandler(
     ITokenService tokenService,
     IOptions<JwtSettings> jwtSettings,
     IValidator<LoginUserCommand> validator,
+    IFileAttachmentLookup fileLookup,
     ISender sender)
     : IRequestHandler<LoginUserCommand, LoginUserResponse>
 {
@@ -89,6 +91,8 @@ public class LoginUserHandler(
 
         await writeRepository.AddRefreshTokenAsync(user.Id, refreshTokenValue, jwtSettings.Value.RefreshTokenExpiryDays, cancellationToken);
 
+        var logoUrl = await fileLookup.GetDownloadUrlAsync(practice?.LogoFileId, cancellationToken);
+
         return new LoginUserResponse(
             user.Id,
             user.FullName,
@@ -99,7 +103,7 @@ public class LoginUserHandler(
             user.PracticeId,
             practice?.Name ?? string.Empty,
             practice?.PrimaryColor,
-            practice?.LogoBase64,
+            logoUrl,
             practice?.HasDispensary ?? false,
             practice?.SubscriptionTier ?? Domain.Entities.SubscriptionTier.Starter,
             practice?.SubscriptionStatus ?? Domain.Entities.SubscriptionStatus.Trial,

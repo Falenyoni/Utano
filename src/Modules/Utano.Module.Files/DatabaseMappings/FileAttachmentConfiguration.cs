@@ -13,7 +13,7 @@ public class FileAttachmentConfiguration : IEntityTypeConfiguration<FileAttachme
         builder.HasKey(f => f.Id);
 
         builder.Property(f => f.PracticeId).IsRequired();
-        builder.Property(f => f.PatientId).IsRequired();
+        builder.Property(f => f.PatientId);
         builder.Property(f => f.ConsultationId);
 
         builder.Property(f => f.FileName).HasMaxLength(500).IsRequired();

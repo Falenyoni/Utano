@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Utano.Module.Core.Services;
 using Utano.Module.Files.DatabaseMappings;
 using Utano.Module.Files.Domain.Interfaces;
 using Utano.Module.Files.Infrastructure.Repositories;
@@ -29,6 +30,7 @@ public static class AppConfiguration
 
         services.AddScoped<IFileAttachmentRepository, FileAttachmentRepository>();
         services.AddSingleton<IFileStorageService, R2FileStorageService>();
+        services.AddScoped<IFileAttachmentLookup, FileAttachmentLookup>();
 
         return services;
     }

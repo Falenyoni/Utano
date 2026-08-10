@@ -48,21 +48,25 @@ public class PracticeEndpoints(ISender sender) : ControllerBase
     }
 }
 
-public record PracticeResponse(Guid Id, string Name, string ContactEmail, string ContactPhone, string PhysicalAddress, bool HasDispensary, string? AdhozNumber, string? BpNumber, string? LogoBase64);
+public record PracticeResponse(Guid Id, string Name, string ContactEmail, string ContactPhone, string PhysicalAddress, bool HasDispensary, string? AdhozNumber, string? BpNumber, string? LogoUrl);
 public record UpdatePracticeBody(string Name, string ContactEmail, string ContactPhone, string PhysicalAddress, bool HasDispensary, string? AdhozNumber, string? BpNumber);
 
 // ─── Get ────────────────────────────────────────────────────────────────────
 
 public record GetPracticeQuery : IRequest<PracticeResponse?>;
 
-public class GetPracticeHandler(IPracticeRepository repository, ICurrentUserService currentUser)
+public class GetPracticeHandler(
+    IPracticeRepository repository,
+    ICurrentUserService currentUser,
+    IFileAttachmentLookup fileLookup)
     : IRequestHandler<GetPracticeQuery, PracticeResponse?>
 {
     public async Task<PracticeResponse?> Handle(GetPracticeQuery _, CancellationToken ct)
     {
         var practice = await repository.GetByIdAsync(currentUser.PracticeId, ct);
         if (practice is null) return null;
-        return new PracticeResponse(practice.Id, practice.Name, practice.ContactEmail, practice.ContactPhone, practice.PhysicalAddress, practice.HasDispensary, practice.AdhozNumber, practice.BpNumber, practice.LogoBase64);
+        var logoUrl = await fileLookup.GetDownloadUrlAsync(practice.LogoFileId, ct);
+        return new PracticeResponse(practice.Id, practice.Name, practice.ContactEmail, practice.ContactPhone, practice.PhysicalAddress, practice.HasDispensary, practice.AdhozNumber, practice.BpNumber, logoUrl);
     }
 }
 

@@ -13,6 +13,16 @@ public class FileAttachmentRepository(FilesDbContext context) : IFileAttachmentR
             .AsNoTracking()
             .FirstOrDefaultAsync(f => f.Id == id, ct);
 
+    // Bypasses the practice-scoped query filter. Only for cross-module lookups (e.g. resolving a
+    // practice's logo at login, before a JWT/ICurrentUserService.PracticeId exists) where the
+    // caller already trusts the FileId it's holding (it was only ever set to a file that same
+    // practice created).
+    public async Task<FileAttachment?> GetByIdIgnoringTenantAsync(Guid id, CancellationToken ct = default)
+        => await context.FileAttachments
+            .IgnoreQueryFilters()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(f => f.Id == id, ct);
+
     public async Task<IReadOnlyList<FileAttachment>> GetByPatientAsync(
         Guid patientId,
         FileAttachmentType? type = null,

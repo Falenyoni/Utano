@@ -3,12 +3,16 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using Utano.Module.Core.Authorization;
 using Utano.Module.Core.Exceptions;
 using Utano.Module.Files.Domain.Interfaces;
 
 namespace Utano.Module.Files.Features.Files.DeleteFile;
 
-public record DeleteFileCommand(Guid Id) : IRequest;
+public record DeleteFileCommand(Guid Id) : IRequest, IRequirePermission
+{
+    public string Permission => "patients.edit";
+}
 
 [ApiController]
 [Route("api/files")]

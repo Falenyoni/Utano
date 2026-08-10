@@ -30,7 +30,8 @@ public class Practice : AggregateRoot
     public string? AdhozNumber { get; private set; }
     public string? BpNumber { get; private set; }
     public string? PrimaryColor { get; private set; }
-    public string? LogoBase64 { get; private set; }
+    public string? LogoBase64 { get; private set; } // deprecated - legacy inline logo storage, superseded by LogoFileId (R2). Kept until existing practices are backfilled; see docs/file-storage.md.
+    public Guid? LogoFileId { get; private set; }
 
     public string SubscriptionTier { get; private set; } = Entities.SubscriptionTier.Starter;
     public string SubscriptionStatus { get; private set; } = Entities.SubscriptionStatus.Trial;
@@ -91,12 +92,28 @@ public class Practice : AggregateRoot
         UpdatedAt          = DateTimeOffset.UtcNow;
     }
 
-    // logoBase64: null = keep existing, "" = clear logo, any other value = update logo
-    public void UpdateBranding(string? primaryColor, string? logoBase64)
+    // logoFileId: null = keep existing logo, clearLogo = true removes it (wins over logoFileId),
+    // otherwise a value sets the new logo. Returns the previous LogoFileId so the caller can clean
+    // up the now-orphaned R2 object when it changed.
+    public Guid? UpdateBranding(string? primaryColor, Guid? logoFileId, bool clearLogo)
     {
         PrimaryColor = primaryColor;
-        if (logoBase64 is not null)
-            LogoBase64 = logoBase64 == string.Empty ? null : logoBase64;
+
+        var previousLogoFileId = LogoFileId;
+        if (clearLogo)
+            LogoFileId = null;
+        else if (logoFileId is not null)
+            LogoFileId = logoFileId;
+
+        UpdatedAt = DateTimeOffset.UtcNow;
+        return previousLogoFileId != LogoFileId ? previousLogoFileId : null;
+    }
+
+    // One-off backfill from the legacy base64 logo into R2 - see the admin migrate-branding-logos
+    // endpoint. Not part of the normal branding flow.
+    public void SetLogoFileIdFromMigration(Guid logoFileId)
+    {
+        LogoFileId = logoFileId;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 

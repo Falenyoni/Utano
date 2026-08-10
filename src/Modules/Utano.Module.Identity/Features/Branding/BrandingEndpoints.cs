@@ -21,9 +21,9 @@ public class BrandingEndpoints(ISender sender, ICurrentUserService currentUser) 
     [HttpPost]
     public async Task<IActionResult> Update([FromBody] UpdateBrandingRequest req, CancellationToken ct)
     {
-        await sender.Send(new UpdateBrandingCommand(currentUser.PracticeId, req.PrimaryColor, req.LogoBase64), ct);
+        await sender.Send(new UpdateBrandingCommand(currentUser.PracticeId, req.PrimaryColor, req.LogoFileId, req.ClearLogo), ct);
         return Ok();
     }
 }
 
-public record UpdateBrandingRequest(string? PrimaryColor, string? LogoBase64);
+public record UpdateBrandingRequest(string? PrimaryColor, Guid? LogoFileId, bool ClearLogo = false);

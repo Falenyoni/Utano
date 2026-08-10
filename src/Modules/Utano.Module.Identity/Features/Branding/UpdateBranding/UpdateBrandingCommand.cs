@@ -4,7 +4,7 @@ using Utano.Module.Identity.Configuration;
 
 namespace Utano.Module.Identity.Features.Branding.UpdateBranding;
 
-public record UpdateBrandingCommand(Guid PracticeId, string? PrimaryColor, string? LogoBase64)
+public record UpdateBrandingCommand(Guid PracticeId, string? PrimaryColor, Guid? LogoFileId, bool ClearLogo)
     : IRequest, IRequirePermission
 {
     public string Permission => UtanoCoreModuleDescriptor.SettingsBranding;

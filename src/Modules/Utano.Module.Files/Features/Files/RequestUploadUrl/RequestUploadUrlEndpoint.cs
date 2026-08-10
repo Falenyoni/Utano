@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using Utano.Module.Core.Authorization;
 using Utano.Module.Core.Exceptions;
 using Utano.Module.Core.Services;
 using Utano.Module.Files.Domain.Entities;
@@ -12,13 +13,18 @@ using Utano.Module.Files.Domain.Interfaces;
 namespace Utano.Module.Files.Features.Files.RequestUploadUrl;
 
 public record RequestUploadUrlCommand(
-    Guid PatientId,
+    Guid? PatientId,
     string FileName,
     string ContentType,
     long SizeBytes,
     FileAttachmentType AttachmentType,
     Guid? ConsultationId,
-    string? Description) : IRequest<RequestUploadUrlResponse>;
+    string? Description) : IRequest<RequestUploadUrlResponse>, IRequirePermission
+{
+    // Patient files carry clinical data (patients.edit); a null PatientId means a practice-level
+    // asset (currently just the branding logo, gated the same as changing branding itself).
+    public string Permission => PatientId is null ? "settings.branding" : "patients.edit";
+}
 
 public record RequestUploadUrlResponse(
     Guid FileId,
@@ -47,7 +53,7 @@ public class RequestUploadUrlHandler(
 {
     private static readonly HashSet<string> AllowedContentTypes =
     [
-        "image/jpeg", "image/png", "image/webp", "image/gif",
+        "image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml",
         "application/pdf",
         "application/dicom", "image/dicom"
     ];
@@ -64,7 +70,8 @@ public class RequestUploadUrlHandler(
             throw new UtanoDomainException($"File exceeds the maximum allowed size of 50 MB.");
 
         var ext = Path.GetExtension(cmd.FileName).ToLowerInvariant();
-        var objectKey = $"{currentUser.PracticeId}/{cmd.PatientId}/{cmd.AttachmentType.ToString().ToLower()}/{Guid.NewGuid()}{ext}";
+        var scope = cmd.PatientId?.ToString() ?? "_practice";
+        var objectKey = $"{currentUser.PracticeId}/{scope}/{cmd.AttachmentType.ToString().ToLower()}/{Guid.NewGuid()}{ext}";
 
         var file = FileAttachment.Create(
             currentUser.PracticeId,
