@@ -9,7 +9,7 @@ using Utano.Module.Files.Domain.Interfaces;
 
 namespace Utano.Module.Files.Features.Files.ListFiles;
 
-public record ListFilesQuery(Guid PatientId, FileAttachmentType? Type)
+public record ListFilesQuery(Guid PatientId, FileAttachmentType? Type, Guid? ConsultationId)
     : IRequest<IReadOnlyList<FileAttachmentDto>>, IRequirePermission
 {
     public string Permission => "patients.view";
@@ -37,8 +37,9 @@ public class ListFilesEndpoint(ISender sender) : ControllerBase
     public async Task<IActionResult> ListFiles(
         [FromQuery] Guid patientId,
         [FromQuery] FileAttachmentType? type,
+        [FromQuery] Guid? consultationId,
         CancellationToken ct)
-        => Ok(await sender.Send(new ListFilesQuery(patientId, type), ct));
+        => Ok(await sender.Send(new ListFilesQuery(patientId, type, consultationId), ct));
 }
 
 public class ListFilesHandler(IFileAttachmentRepository repository)
@@ -47,6 +48,9 @@ public class ListFilesHandler(IFileAttachmentRepository repository)
     public async Task<IReadOnlyList<FileAttachmentDto>> Handle(ListFilesQuery query, CancellationToken ct)
     {
         var files = await repository.GetByPatientAsync(query.PatientId, query.Type, ct);
+
+        if (query.ConsultationId.HasValue)
+            files = files.Where(f => f.ConsultationId == query.ConsultationId.Value).ToList();
 
         return files.Select(f => new FileAttachmentDto(
             f.Id,
