@@ -8,7 +8,7 @@ public interface IPatientReadRepository
 {
     Task<Patient?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
-    Task<Patient?> GetByNationalIdAsync(string nationalId, CancellationToken cancellationToken = default);
+    Task<Patient?> GetByIdentifierAsync(PatientIdentifierType type, string value, CancellationToken cancellationToken = default);
 
     Task<PagedResult<Patient>> GetPagedAsync(string? searchTerm, PatientStatus? status,
         int page, int pageSize, CancellationToken cancellationToken = default);

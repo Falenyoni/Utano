@@ -19,7 +19,8 @@ public class GetPatientsHandler(IPatientReadRepository readRepository)
             Data = result.Data.Select(p => new GetPatientsResponse(
                 p.Id,
                 p.FullName.Display,
-                p.NationalId.Value,
+                p.Identifier.Type.ToString(),
+                p.Identifier.Value,
                 p.DateOfBirth,
                 p.Gender.ToString(),
                 p.Status.ToString())),

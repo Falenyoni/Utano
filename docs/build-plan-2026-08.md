@@ -69,13 +69,13 @@ Items are grouped into phases by **dependency and effort**, not just severity �
 ## Phase 8 — Patient model change
 *Bigger domain change — touches registration form + duplicate-check logic. Own focused session.*
 
-- [ ] **#29** — Make `NationalId` optional, add a placeholder/alternative-identifier path (newborns, foreign patients, ID-less walk-ins).
+- [x] **#29** — Replaced `NationalId` with a typed `PatientIdentifier` (NationalId | Passport | Pending), covering newborns, foreign patients, and ID-less walk-ins. Built 2026-08-10 (see `docs/adr/0001-typed-patient-identifier.md`). Code-complete on both repos; **live verification still pending** — blocked on `Update-Database -Context PatientsDbContext` being run against the real DB.
 
 ## Phase 9 — Modal cleanup
 *No correctness risk — whenever there's a lighter week.*
 
-- [ ] **#11** — Shared modal primitives (`ModalBackdrop`, `inputClass`, `labelClass`) instead of duplicated across 6+ files.
-- [ ] **#12** — Convert `NewPatientPage`, `PatientDetailPage`, `WalkInPage`, `NewAppointmentPage` from pages to modals.
+- [x] **#11** — Shared modal primitives (`ModalBackdrop`, `inputClass`, `labelClass`) extracted to `shared/components/ModalBackdrop.tsx` and `shared/constants/formStyles.ts`; applied across all files with genuine style drift. Built 2026-08-10.
+- [x] **#12** — Converted `NewPatientPage`→`NewPatientModal`, `PatientDetailPage`→`PatientDetailModal`, `WalkInPage`→`WalkInModal`, `NewAppointmentPage`→`NewAppointmentModal`. The two patient modals use route-driven nesting (`patients/new`, `patients/:id` as children of `patients`, rendered via `<Outlet />`) to stay deep-linkable; the other two use local component state. Built 2026-08-10. `npx tsc --noEmit` clean.
 
 ## Phase 10 — Deferred by explicit decision
 *Last, per Bongani's own earlier call.*

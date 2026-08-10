@@ -24,14 +24,19 @@ public class RegisterPatientHandler(
         if (!validationResult.IsValid)
             throw new UtanoDomainException(validationResult.Errors[0].ErrorMessage);
 
-        var existing = await readRepository.GetByNationalIdAsync(
-            command.NationalId, cancellationToken);
+        var identifierType = Enum.Parse<PatientIdentifierType>(command.IdentifierType, ignoreCase: true);
 
-        if (existing is not null)
-            throw new UtanoDomainException($"A patient with National ID '{command.NationalId}' is already registered.");
+        if (identifierType != PatientIdentifierType.Pending)
+        {
+            var existing = await readRepository.GetByIdentifierAsync(
+                identifierType, command.IdentifierValue!, cancellationToken);
+
+            if (existing is not null)
+                throw new UtanoDomainException($"A patient with this {identifierType} is already registered.");
+        }
 
         var fullName = FullName.Create(command.FirstName, command.LastName, command.MiddleName ?? "");
-        var nationalId = NationalId.Create(command.NationalId);
+        var identifier = PatientIdentifier.Create(identifierType, command.IdentifierValue);
         var gender = Enum.Parse<Gender>(command.Gender, ignoreCase: true);
 
         var patient = Patient.Register(
@@ -39,7 +44,7 @@ public class RegisterPatientHandler(
             fullName,
             command.DateOfBirth,
             gender,
-            nationalId);
+            identifier);
 
         if (!string.IsNullOrWhiteSpace(command.Occupation))
             patient.SetOccupation(command.Occupation);
@@ -66,7 +71,8 @@ public class RegisterPatientHandler(
         return new RegisterPatientResponse(
             patient.Id,
             patient.FullName.Display,
-            patient.NationalId.Value,
+            patient.Identifier.Type.ToString(),
+            patient.Identifier.Value,
             patient.DateOfBirth,
             patient.Gender.ToString(),
             patient.Status.ToString(),

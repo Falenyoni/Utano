@@ -3,7 +3,8 @@ namespace Utano.Module.Patients.Features.Patients.RegisterPatient;
 public record RegisterPatientResponse(
     Guid Id,
     string FullName,
-    string NationalId,
+    string IdentifierType,
+    string? IdentifierValue,
     DateOnly DateOfBirth,
     string Gender,
     string Status,

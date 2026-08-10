@@ -7,6 +7,8 @@ public record UpdatePatientCommand(
     string FirstName,
     string LastName,
     string? MiddleName,
+    string IdentifierType,
+    string? IdentifierValue,
     string? Notes,
     string? Occupation,
     Guid? MedicalAidId,

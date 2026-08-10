@@ -22,11 +22,15 @@ public class PatientConfiguration : IEntityTypeConfiguration<Patient>
             fn.Property(f => f.MiddleName).HasColumnName("MiddleName").HasMaxLength(100);
         });
 
-        builder.Property(p => p.NationalId)
-            .HasConversion(v => v.Value, v => NationalId.Create(v))
-            .HasColumnName("NationalId")
-            .HasMaxLength(50)
+        builder.Property(p => p.IdentifierType)
+            .HasConversion<string>()
+            .HasColumnName("IdentifierType")
+            .HasMaxLength(20)
             .IsRequired();
+
+        builder.Property(p => p.IdentifierValue)
+            .HasColumnName("IdentifierValue")
+            .HasMaxLength(50);
 
         builder.Property(p => p.DateOfBirth).IsRequired();
 
@@ -63,6 +67,6 @@ public class PatientConfiguration : IEntityTypeConfiguration<Patient>
 
         builder.HasIndex(p => p.PracticeId);
         builder.HasIndex(p => new { p.PracticeId, p.Status });
-        builder.HasIndex(p => new { p.PracticeId, p.NationalId }).IsUnique();
+        builder.HasIndex(p => new { p.PracticeId, p.IdentifierType, p.IdentifierValue }).IsUnique();
     }
 }

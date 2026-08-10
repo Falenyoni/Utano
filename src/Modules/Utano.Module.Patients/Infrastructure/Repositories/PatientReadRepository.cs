@@ -19,13 +19,15 @@ public class PatientReadRepository(PatientsDbContext context) : IPatientReadRepo
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
     }
 
-    public async Task<Patient?> GetByNationalIdAsync(string nationalId,
+    public async Task<Patient?> GetByIdentifierAsync(PatientIdentifierType type, string value,
         CancellationToken cancellationToken = default)
     {
-        var nationalIdVO = NationalId.Create(nationalId);
+        var identifier = PatientIdentifier.Create(type, value);
         return await context.Patients
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.NationalId == nationalIdVO, cancellationToken);
+            .FirstOrDefaultAsync(p =>
+                p.IdentifierType == identifier.Type && p.IdentifierValue == identifier.Value,
+                cancellationToken);
     }
 
     public async Task<PagedResult<Patient>> GetPagedAsync(string? searchTerm, PatientStatus? status,
@@ -47,7 +49,7 @@ public class PatientReadRepository(PatientsDbContext context) : IPatientReadRepo
                     SELECT * FROM "Patients"
                     WHERE LOWER("FirstName") LIKE {lower}
                        OR LOWER("LastName")  LIKE {lower}
-                       OR LOWER("NationalId") LIKE {lower}
+                       OR LOWER("IdentifierValue") LIKE {lower}
                     """)
                 .Select(p => p.Id)
                 .ToListAsync(cancellationToken);

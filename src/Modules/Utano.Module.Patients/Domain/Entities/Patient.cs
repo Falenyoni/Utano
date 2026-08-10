@@ -16,7 +16,16 @@ public class Patient : AggregateRoot
     public FullName FullName { get; private set; }
     public DateOnly DateOfBirth { get; private set; }
     public Gender Gender { get; private set; }
-    public NationalId NationalId { get; private set; }
+
+    // Stored as two plain columns rather than an EF Core owned type - a composite unique index
+    // spanning an owner property (PracticeId) and an owned-type property isn't expressible via
+    // EF Core's HasIndex (neither the lambda nor the dotted-string-path form resolves through an
+    // owned navigation). Identifier re-validates on every read via PatientIdentifier.Create, which
+    // is cheap and keeps the domain-facing API a single VO despite the two-column storage.
+    public PatientIdentifierType IdentifierType { get; private set; }
+    public string? IdentifierValue { get; private set; }
+    public PatientIdentifier Identifier => PatientIdentifier.Create(IdentifierType, IdentifierValue);
+
     public PatientStatus Status { get; private set; }
     public string? Notes { get; private set; }
     public string? Occupation { get; private set; }
@@ -34,7 +43,7 @@ public class Patient : AggregateRoot
         FullName fullName,
         DateOnly dateOfBirth,
         Gender gender,
-        NationalId nationalId)
+        PatientIdentifier identifier)
     {
         if (practiceId == Guid.Empty)
             throw new UtanoDomainException("Practice is required.");
@@ -49,11 +58,22 @@ public class Patient : AggregateRoot
             FullName = fullName,
             DateOfBirth = dateOfBirth,
             Gender = gender,
-            NationalId = nationalId,
+            IdentifierType = identifier.Type,
+            IdentifierValue = identifier.Value,
             Status = PatientStatus.Active,
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow
         };
+    }
+
+    public void UpdateIdentifier(PatientIdentifier identifier)
+    {
+        if (Status == PatientStatus.Inactive)
+            throw new UtanoDomainException("Cannot update an inactive patient.");
+
+        IdentifierType = identifier.Type;
+        IdentifierValue = identifier.Value;
+        UpdatedAt = DateTimeOffset.UtcNow;
     }
 
     public void UpdateDetails(FullName fullName, string? notes = null, string? occupation = null)
