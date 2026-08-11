@@ -40,7 +40,7 @@ Items are grouped into phases by **dependency and effort**, not just severity �
 *Real money risk — prioritize ahead of general polish.*
 
 - [x] **#24** — Turned out to be already fully built (direct `IBillingService` calls from `OpenVisitHandler`/`CompleteVisitHandler`/procedures/prescriptions, not a `VisitCompletedEvent` handler as assumed). Live-verified 2026-08-04; only real gap was frontend visibility (visit↔invoice link), fixed same day — see technical-debt doc.
-- [ ] **#32** — ⏸ Deferred by explicit decision (2026-08-04, "let's skip this we will do it later"). Forgot Password flow, needs an email-provider decision (Resend was the leaning choice) — same decision Phase 10/#14 needs, make it once here whenever it's picked back up.
+- [ ] **#32** — ⏸ Deferred by explicit decision (2026-08-04, "let's skip this we will do it later"). Forgot Password flow. **Email provider decided 2026-08-10: Resend** — blocked on Bongani buying a domain first (Cloudflare Registrar, `.com`); pick back up once that exists. Same decision unblocks Phase 10/#14 too.
 
 ## Phase 5 — File storage chain
 *Dependent — build in this exact order.*
@@ -83,13 +83,14 @@ Items are grouped into phases by **dependency and effort**, not just severity �
 *Last, per Bongani's own earlier call.*
 
 - [ ] **#13** — Broader audit trail (Billing, Inventory, Patients, Identity).
-- [ ] **#14** — Phase 4: actual WhatsApp/email sending. After #3 and #32's email infra both exist.
+- [ ] **#14** — Phase 4: actual WhatsApp/email sending. After #3 and #32's email infra both exist. Email provider decided (Resend) — see #32.
 
 ## Fold in opportunistically
 *Not worth a dedicated pass — fix when nearby code gets touched anyway.*
 
 - [ ] **#15** — `CreatePracticeHandler`'s hardcoded system-role list.
 - [ ] **#16** — Dead code: `Visit.UpdateVitals()`.
+- [ ] **#39** — `NoShow` appointments have no available actions and no way to undo one. Found 2026-08-10.
 
 ---
 

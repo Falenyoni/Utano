@@ -58,10 +58,13 @@ public static class AppConfiguration
             job => job.RunAsync(CancellationToken.None),
             Cron.MinuteInterval(15));
 
+        // Testing-mode cadence (2026-08-11, Bongani's call): once nightly instead of every 15 min,
+        // so appointments stay bookable/editable through the day while testing rather than getting
+        // auto-flipped to NoShow mid-session. Revert to Cron.MinuteInterval(15) for production.
         recurringJobs.AddOrUpdate<AppointmentNoShowScanJob>(
             "appointment-noshow-scan",
             job => job.RunAsync(CancellationToken.None),
-            Cron.MinuteInterval(15));
+            Cron.Daily(0, 5));
 
         return application;
     }
