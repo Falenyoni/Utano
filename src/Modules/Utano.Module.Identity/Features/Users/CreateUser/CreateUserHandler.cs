@@ -11,7 +11,6 @@ namespace Utano.Module.Identity.Features.Users.CreateUser;
 
 public class CreateUserHandler(
     IUserWriteRepository writeRepository,
-    IUserReadRepository readRepository,
     IPasswordService passwordService,
     ICurrentUserService currentUserService,
     IdentityDbContext db,
@@ -23,11 +22,6 @@ public class CreateUserHandler(
         var validation = await validator.ValidateAsync(command, cancellationToken);
         if (!validation.IsValid)
             throw new UtanoDomainException(validation.Errors[0].ErrorMessage);
-
-        var emailExists = await readRepository.EmailExistsInPracticeAsync(
-            command.Email, currentUserService.PracticeId, cancellationToken);
-        if (emailExists)
-            throw new UtanoDomainException("A user with this email already exists.");
 
         var passwordHash = passwordService.Hash(command.Password);
 

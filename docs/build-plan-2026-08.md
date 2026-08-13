@@ -91,6 +91,7 @@ Items are grouped into phases by **dependency and effort**, not just severity �
 - [ ] **#15** — `CreatePracticeHandler`'s hardcoded system-role list.
 - [ ] **#16** — Dead code: `Visit.UpdateVitals()`.
 - [ ] **#39** — `NoShow` appointments have no available actions and no way to undo one. Found 2026-08-10.
+- [x] **#40** — Login couldn't disambiguate two accounts sharing one email (per-practice uniqueness let this happen, `CreateUserCommand` didn't check globally like `CreatePracticeCommand` did). Found and fixed 2026-08-13 — app-layer check + DB constraint restored globally unique. **Blocked on Bongani running the handed-off cleanup script + `Update-Database -Context IdentityDbContext` before this is actually live.**
 
 ---
 

@@ -52,6 +52,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Navigation(u => u.RoleAssignments)
             .UsePropertyAccessMode(PropertyAccessMode.Field);
 
-        builder.HasIndex(u => new { u.PracticeId, u.Email }).IsUnique();
+        // Global, not per-practice - GetByEmailAsync (used at login) has no PracticeId filter, so a
+        // second practice reusing an email would make login undefined for one of the two accounts.
+        builder.HasIndex(u => u.Email).IsUnique();
     }
 }
