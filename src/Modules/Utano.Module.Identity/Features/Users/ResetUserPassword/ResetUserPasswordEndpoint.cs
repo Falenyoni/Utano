@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using System.Net;
 using Utano.Module.Core.Authorization;
 using Utano.Module.Core.Exceptions;
@@ -54,7 +55,9 @@ public class ResetUserPasswordHandler(
     IUserWriteRepository writeRepository,
     IPasswordService passwordService,
     ICurrentUserService currentUser,
-    IValidator<ResetUserPasswordCommand> validator)
+    IEmailSender emailSender,
+    IValidator<ResetUserPasswordCommand> validator,
+    ILogger<ResetUserPasswordHandler> logger)
     : IRequestHandler<ResetUserPasswordCommand, bool>
 {
     public async Task<bool> Handle(ResetUserPasswordCommand cmd, CancellationToken ct)
@@ -69,6 +72,26 @@ public class ResetUserPasswordHandler(
 
         user.UpdatePassword(passwordService.Hash(cmd.NewPassword));
         await writeRepository.UpdateAsync(user, ct);
+
+        // Notifies the affected staff member their password changed, since - unlike self-service
+        // Change Password - they didn't take this action themselves. Never blocks the reset itself.
+        try
+        {
+            await emailSender.SendAsync(
+                user.Email.Value,
+                "Your Utano password was reset",
+                $"""
+                <p>Hi {user.FirstName},</p>
+                <p>An administrator at your practice just reset your Utano password.</p>
+                <p>If you weren't expecting this, contact your practice administrator.</p>
+                """,
+                ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to send password-reset notification to user {UserId}", user.Id);
+        }
+
         return true;
     }
 }

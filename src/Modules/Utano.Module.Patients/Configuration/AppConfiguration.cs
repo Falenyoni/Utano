@@ -34,6 +34,7 @@ public static class AppConfiguration
         services.AddScoped<IMedicalAidRepository, MedicalAidRepository>();
         services.AddScoped<IPatientStatusChecker, PatientStatusChecker>();
         services.AddScoped<IPatientDemographicsLookup, PatientDemographicsLookup>();
+        services.AddScoped<IPatientContactLookup, PatientContactLookup>();
         services.AddSingleton<IModuleDescriptor, PatientsModuleDescriptor>();
 
         return services;

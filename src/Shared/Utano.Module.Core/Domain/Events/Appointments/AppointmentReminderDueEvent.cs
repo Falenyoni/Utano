@@ -5,6 +5,7 @@ public record AppointmentReminderDueEvent(
     Guid AppointmentId,
     Guid DoctorId,
     string DoctorName,
+    Guid PatientId,
     string PatientName,
     DateOnly AppointmentDate,
     TimeOnly StartTime) : IDomainEvent;

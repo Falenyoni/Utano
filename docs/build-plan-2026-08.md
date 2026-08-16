@@ -83,7 +83,7 @@ Items are grouped into phases by **dependency and effort**, not just severity �
 *Last, per Bongani's own earlier call.*
 
 - [ ] **#13** — Broader audit trail (Billing, Inventory, Patients, Identity).
-- [ ] **#14** — Phase 4: actual WhatsApp/email sending. After #3 and #32's email infra both exist. Email provider decided (Resend) — see #32.
+- [x] **#14** — Email half done 2026-08-16: appointment reminder emails to both doctor (if opted in) and patient (if they have an email on file), reusing `IEmailSender`. WhatsApp/SMS still needs a provider account — not started.
 
 ## Fold in opportunistically
 *Not worth a dedicated pass — fix when nearby code gets touched anyway.*

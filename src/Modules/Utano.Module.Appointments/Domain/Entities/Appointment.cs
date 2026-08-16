@@ -178,6 +178,6 @@ public class Appointment : AggregateRoot, IHasDomainEvents
         RemindedAt = DateTimeOffset.UtcNow;
 
         AddDomainEvent(new AppointmentReminderDueEvent(
-            PracticeId, Id, DoctorId, DoctorName, PatientName, AppointmentDate, StartTime));
+            PracticeId, Id, DoctorId, DoctorName, PatientId, PatientName, AppointmentDate, StartTime));
     }
 }

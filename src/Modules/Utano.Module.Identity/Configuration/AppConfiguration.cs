@@ -69,6 +69,7 @@ public static class AppConfiguration
         services.AddScoped<IPasswordService, PasswordService>();
         services.AddScoped<IFeatureService, FeatureService>();
         services.AddScoped<IUserPracticeValidator, UserPracticeValidator>();
+        services.AddScoped<IUserContactLookup, UserContactLookup>();
         services.AddSingleton<IModuleDescriptor, UtanoCoreModuleDescriptor>();
         services.AddSingleton<IModuleDescriptor, ReportsModuleDescriptor>();
 

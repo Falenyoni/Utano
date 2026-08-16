@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using System.Net;
 using Utano.Module.Core.Exceptions;
 using Utano.Module.Core.Services;
@@ -45,7 +46,9 @@ public class ChangePasswordHandler(
     IUserWriteRepository writeRepository,
     IPasswordService passwordService,
     ICurrentUserService currentUser,
-    IValidator<ChangePasswordCommand> validator)
+    IEmailSender emailSender,
+    IValidator<ChangePasswordCommand> validator,
+    ILogger<ChangePasswordHandler> logger)
     : IRequestHandler<ChangePasswordCommand>
 {
     public async Task Handle(ChangePasswordCommand cmd, CancellationToken ct)
@@ -62,5 +65,25 @@ public class ChangePasswordHandler(
 
         user.UpdatePassword(passwordService.Hash(cmd.NewPassword));
         await writeRepository.UpdateAsync(user, ct);
+
+        // Security notification, not a verification step - the change has already happened by the
+        // time this sends, so a delivery failure must never block or roll back the password
+        // change itself.
+        try
+        {
+            await emailSender.SendAsync(
+                user.Email.Value,
+                "Your Utano password was changed",
+                $"""
+                <p>Hi {user.FirstName},</p>
+                <p>Your Utano password was just changed.</p>
+                <p>If this wasn't you, contact your practice administrator immediately.</p>
+                """,
+                ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to send password-change notification to user {UserId}", user.Id);
+        }
     }
 }
