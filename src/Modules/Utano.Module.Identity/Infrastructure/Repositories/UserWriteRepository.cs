@@ -27,4 +27,20 @@ public class UserWriteRepository(IdentityDbContext context) : IUserWriteReposito
         await context.RefreshTokens.AddAsync(refreshToken, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task AddPasswordResetTokenAsync(Guid userId, string tokenHash, int expiryMinutes, CancellationToken cancellationToken = default)
+    {
+        var resetToken = PasswordResetToken.Create(userId, tokenHash, expiryMinutes);
+        await context.PasswordResetTokens.AddAsync(resetToken, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task MarkPasswordResetTokenUsedAsync(Guid tokenId, CancellationToken cancellationToken = default)
+    {
+        var token = await context.PasswordResetTokens.FirstOrDefaultAsync(t => t.Id == tokenId, cancellationToken);
+        if (token is null) return;
+
+        token.MarkUsed();
+        await context.SaveChangesAsync(cancellationToken);
+    }
 }

@@ -64,6 +64,18 @@ public static class AppConfiguration
                         Window = TimeSpan.FromHours(1),
                         QueueLimit = 0,
                     }));
+
+            // Public, unauthenticated, and sends a real email per request - without this, it's an
+            // easy way to spam a victim's inbox or burn through Resend's send quota.
+            options.AddPolicy("forgot-password", httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 5,
+                        Window = TimeSpan.FromHours(1),
+                        QueueLimit = 0,
+                    }));
         });
 
         // Open-generic registrations - apply to every request across every module's own

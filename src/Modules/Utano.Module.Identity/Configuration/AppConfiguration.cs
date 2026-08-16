@@ -24,6 +24,7 @@ public static class AppConfiguration
         var jwtSettings = configuration.GetSection("JwtSettings").Get<JwtSettings>()!;
 
         services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
+        services.Configure<PasswordResetSettings>(configuration.GetSection("PasswordReset"));
 
         services.AddDbContext<IdentityDbContext>(options =>
             options.UseNpgsql(configuration.GetConnectionString("UtanoDb")));

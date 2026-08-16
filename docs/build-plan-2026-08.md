@@ -40,7 +40,7 @@ Items are grouped into phases by **dependency and effort**, not just severity �
 *Real money risk — prioritize ahead of general polish.*
 
 - [x] **#24** — Turned out to be already fully built (direct `IBillingService` calls from `OpenVisitHandler`/`CompleteVisitHandler`/procedures/prescriptions, not a `VisitCompletedEvent` handler as assumed). Live-verified 2026-08-04; only real gap was frontend visibility (visit↔invoice link), fixed same day — see technical-debt doc.
-- [ ] **#32** — ⏸ Deferred by explicit decision (2026-08-04, "let's skip this we will do it later"). Forgot Password flow. **Email provider decided 2026-08-10: Resend** — blocked on Bongani buying a domain first (Cloudflare Registrar, `.com`); pick back up once that exists. Same decision unblocks Phase 10/#14 too.
+- [x] **#32** — Forgot Password flow. Built 2026-08-16: `IEmailSender`/`ResendEmailSender`, `PasswordResetToken`, forgot/reset-password endpoints + frontend pages. Both builds clean. **Not yet live** — migration not run, and `PasswordReset__FrontendBaseUrl` needs setting on Render (defaults to localhost) before reset links actually work for real users.
 
 ## Phase 5 — File storage chain
 *Dependent — build in this exact order.*
@@ -91,7 +91,7 @@ Items are grouped into phases by **dependency and effort**, not just severity �
 - [ ] **#15** — `CreatePracticeHandler`'s hardcoded system-role list.
 - [ ] **#16** — Dead code: `Visit.UpdateVitals()`.
 - [ ] **#39** — `NoShow` appointments have no available actions and no way to undo one. Found 2026-08-10.
-- [x] **#40** — Login couldn't disambiguate two accounts sharing one email (per-practice uniqueness let this happen, `CreateUserCommand` didn't check globally like `CreatePracticeCommand` did). Found and fixed 2026-08-13 — app-layer check + DB constraint restored globally unique. **Blocked on Bongani running the handed-off cleanup script + `Update-Database -Context IdentityDbContext` before this is actually live.**
+- [x] **#40** — Login couldn't disambiguate two accounts sharing one email (per-practice uniqueness let this happen, `CreateUserCommand` didn't check globally like `CreatePracticeCommand` did). Found and fixed 2026-08-13 — app-layer check + DB constraint restored globally unique. Cleanup script run, migration applied, code pushed — **live 2026-08-14.**
 
 ---
 

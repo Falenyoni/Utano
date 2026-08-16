@@ -28,8 +28,8 @@ This doc captures the current state, the gaps found when reviewing the module fo
 
 ### Not present anywhere in the solution
 
-- No background job / scheduler infrastructure (no Hangfire, no `IHostedService`, no recurring jobs) — required for any kind of reminder ("appointment tomorrow at 2pm").
-- No email or SMS provider integration.
+- ~~No background job / scheduler infrastructure~~ — Hangfire now runs `AppointmentReminderScanJob` and `AppointmentNoShowScanJob` on recurring schedules (see `Utano.Module.Appointments/Configuration/AppConfiguration.cs`). The reminder job has nothing to actually send through yet, though — see below.
+- No email or SMS provider *wired into code* yet, but the account/domain/credential setup is done — Resend is configured and ready (`docs/infrastructure-setup.md`). SMS/WhatsApp provider not yet chosen.
 - No patient login. Per `docs/patient-portal.md`, patient auth (magic link) is a **designed but unbuilt** future phase — patients cannot receive an in-app notification today because they have no account to receive it on.
 
 ---

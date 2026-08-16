@@ -77,4 +77,12 @@ public class UserReadRepository(IdentityDbContext context) : IUserReadRepository
         return await context.Users
             .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
     }
+
+    public async Task<PasswordResetToken?> GetValidPasswordResetTokenAsync(string tokenHash, CancellationToken cancellationToken = default)
+    {
+        return await context.PasswordResetTokens
+            .FirstOrDefaultAsync(t => t.TokenHash == tokenHash
+                && t.UsedAt == null
+                && t.ExpiresAt > DateTimeOffset.UtcNow, cancellationToken);
+    }
 }

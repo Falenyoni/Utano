@@ -11,4 +11,5 @@ public interface IUserReadRepository
     Task<IReadOnlyList<User>> GetByRoleAsync(Guid practiceId, string role, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<User>> GetAllByPracticeAsync(Guid practiceId, CancellationToken cancellationToken = default);
     Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<PasswordResetToken?> GetValidPasswordResetTokenAsync(string tokenHash, CancellationToken cancellationToken = default);
 }
