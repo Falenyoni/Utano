@@ -31,5 +31,12 @@ public class ClinicalNotesDbContext(
 
         modelBuilder.Entity<VisitDiagnosis>()
             .HasQueryFilter(d => d.PracticeId == currentUserService.PracticeId);
+
+        // AuditLog already had a PracticeId column and practice-scoped indexes, but was missing
+        // from this list - GetAuditLogHandler queried db.AuditLogs directly with no filter of its
+        // own, so every practice could see every other practice's audit trail. Writes were always
+        // correct (AuditService.LogAsync sets PracticeId properly); this was purely a read-side gap.
+        modelBuilder.Entity<AuditLog>()
+            .HasQueryFilter(a => a.PracticeId == currentUserService.PracticeId);
     }
 }

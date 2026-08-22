@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
 using Utano.Module.ClinicalNotes.DatabaseMappings;
+using Utano.Module.Core.Authorization;
 
 namespace Utano.Module.ClinicalNotes.Features.Admin;
 
@@ -47,7 +48,12 @@ public record PagedAuditLog(List<AuditLogRow> Data, int TotalCount, int Page, in
 public record GetAuditLogQuery(
     string? EntityType, string? EntityId, string? Action,
     DateTimeOffset? DateFrom, DateTimeOffset? DateTo,
-    int Page, int PageSize) : IRequest<PagedAuditLog>;
+    int Page, int PageSize) : IRequest<PagedAuditLog>, IRequirePermission
+{
+    // Was [Authorize]-only - any logged-in user of any role could hit this directly, matching
+    // permission to what the frontend route already gates on (router.tsx: admin/audit-log).
+    public string Permission => "settings.roles";
+}
 
 public class GetAuditLogHandler(ClinicalNotesDbContext db)
     : IRequestHandler<GetAuditLogQuery, PagedAuditLog>

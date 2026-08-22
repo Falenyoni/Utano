@@ -40,7 +40,9 @@ Items are grouped into phases by **dependency and effort**, not just severity �
 *Real money risk — prioritize ahead of general polish.*
 
 - [x] **#24** — Turned out to be already fully built (direct `IBillingService` calls from `OpenVisitHandler`/`CompleteVisitHandler`/procedures/prescriptions, not a `VisitCompletedEvent` handler as assumed). Live-verified 2026-08-04; only real gap was frontend visibility (visit↔invoice link), fixed same day — see technical-debt doc.
-- [x] **#32** — Forgot Password flow. Built 2026-08-16: `IEmailSender`/`ResendEmailSender`, `PasswordResetToken`, forgot/reset-password endpoints + frontend pages. Both builds clean. **Not yet live** — migration not run, and `PasswordReset__FrontendBaseUrl` needs setting on Render (defaults to localhost) before reset links actually work for real users.
+- [x] **#32** — Forgot Password flow. Built 2026-08-16: `IEmailSender`/`ResendEmailSender`, `PasswordResetToken`, forgot/reset-password endpoints + frontend pages. **Migrated and live-verified 2026-08-16** — Bongani tested end-to-end. Same-day follow-up: security-notification emails added to `ChangePasswordHandler`/`ResetUserPasswordHandler` too.
+
+**Phase 4 status: fully built and live-verified 2026-08-16.**
 
 ## Phase 5 — File storage chain
 *Dependent — build in this exact order.*
@@ -49,7 +51,7 @@ Items are grouped into phases by **dependency and effort**, not just severity �
 - [x] **#33** — Practice logo moved onto R2 (`Practice.LogoFileId` replacing `LogoBase64` for new uploads); login/branding/practice responses now resolve a fresh presigned `LogoUrl` instead of embedding base64. One-off API-key-gated `POST /api/admin/practices/migrate-branding-logos` backfills any practice's existing base64 logo into R2 — `LogoBase64` column deliberately kept for now, drop it in a follow-up migration once the backfill's been checked live. Built 2026-08-10.
 - [x] **#17** — Patient document upload/viewer UI: `PatientDocuments.tsx` (upload modal with type selector, list, delete) wired into `PatientDetailModal`; viewer shows images inline, PDFs via `<iframe>`, other types as a download link. Built 2026-08-10, `npx tsc --noEmit` clean.
 
-**Phase 5 status: code-complete 2026-08-10, not yet migrated/live-tested.** See PMC commands and the one-off logo-migration step in the handoff notes for this session.
+**Phase 5 status: fully built, migrated, and live-verified 2026-08-16** — R2 credentials configured, CORS fixed (browser drag-drop hijack + missing bucket CORS policy, both found and fixed live), logo upload and patient/visit document upload both confirmed working end-to-end.
 
 ## Phase 6 — Cheap frontend-only batch
 *Good for a lighter week — zero backend work for any of these.*
@@ -83,7 +85,7 @@ Items are grouped into phases by **dependency and effort**, not just severity �
 *Last, per Bongani's own earlier call.*
 
 - [ ] **#13** — Broader audit trail (Billing, Inventory, Patients, Identity).
-- [x] **#14** — Email half done 2026-08-16: appointment reminder emails to both doctor (if opted in) and patient (if they have an email on file), reusing `IEmailSender`. WhatsApp/SMS still needs a provider account — not started.
+- [x] **#14** — Email half done and **live-verified** 2026-08-16: appointment reminder emails to both doctor (if opted in) and patient (if they have an email on file), reusing `IEmailSender`. WhatsApp/SMS still needs a provider account — not started.
 
 ## Fold in opportunistically
 *Not worth a dedicated pass — fix when nearby code gets touched anyway.*
@@ -92,6 +94,7 @@ Items are grouped into phases by **dependency and effort**, not just severity �
 - [ ] **#16** — Dead code: `Visit.UpdateVitals()`.
 - [ ] **#39** — `NoShow` appointments have no available actions and no way to undo one. Found 2026-08-10.
 - [x] **#40** — Login couldn't disambiguate two accounts sharing one email (per-practice uniqueness let this happen, `CreateUserCommand` didn't check globally like `CreatePracticeCommand` did). Found and fixed 2026-08-13 — app-layer check + DB constraint restored globally unique. Cleanup script run, migration applied, code pushed — **live 2026-08-14.**
+- [x] **#41** — **Cross-tenant data leak**: Audit Log page showed every practice's audit trail to every practice — `AuditLog` was the one entity missing from `ClinicalNotesDbContext`'s tenant query filter. Also had zero permission check (`[Authorize]` only). Found 2026-08-21, fixed same day — query filter added, `IRequirePermission` added. No migration. **Push and live-verify before treating as closed.**
 
 ---
 
