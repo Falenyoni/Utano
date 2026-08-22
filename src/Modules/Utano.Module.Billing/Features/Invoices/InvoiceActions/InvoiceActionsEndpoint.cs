@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Net;
 using Utano.Module.Billing.DatabaseMappings;
 using Utano.Module.Billing.Domain.Enums;
+using Utano.Module.Core.Services;
 
 namespace Utano.Module.Billing.Features.Invoices.InvoiceActions;
 
@@ -62,7 +64,8 @@ public class InvoiceActionsEndpoint(ISender sender) : ControllerBase
 
 public record IssueInvoiceCommand(Guid Id) : IRequest<bool>;
 
-public class IssueInvoiceHandler(BillingDbContext db) : IRequestHandler<IssueInvoiceCommand, bool>
+public class IssueInvoiceHandler(BillingDbContext db, IAuditService auditService, ILogger<IssueInvoiceHandler> logger)
+    : IRequestHandler<IssueInvoiceCommand, bool>
 {
     public async Task<bool> Handle(IssueInvoiceCommand cmd, CancellationToken ct)
     {
@@ -71,13 +74,25 @@ public class IssueInvoiceHandler(BillingDbContext db) : IRequestHandler<IssueInv
         if (invoice is null) return false;
         invoice.Issue();
         await db.SaveChangesAsync(ct);
+
+        try
+        {
+            await auditService.LogAsync("Invoice", invoice.Id.ToString(), "Issued",
+                $"Invoice {invoice.InvoiceNumber} · Patient: {invoice.PatientName} · Total: {invoice.TotalAmount:C}", ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to audit-log invoice issue for {InvoiceId}", invoice.Id);
+        }
+
         return true;
     }
 }
 
 public record VoidInvoiceCommand(Guid Id) : IRequest<bool>;
 
-public class VoidInvoiceHandler(BillingDbContext db) : IRequestHandler<VoidInvoiceCommand, bool>
+public class VoidInvoiceHandler(BillingDbContext db, IAuditService auditService, ILogger<VoidInvoiceHandler> logger)
+    : IRequestHandler<VoidInvoiceCommand, bool>
 {
     public async Task<bool> Handle(VoidInvoiceCommand cmd, CancellationToken ct)
     {
@@ -85,6 +100,17 @@ public class VoidInvoiceHandler(BillingDbContext db) : IRequestHandler<VoidInvoi
         if (invoice is null) return false;
         invoice.Void();
         await db.SaveChangesAsync(ct);
+
+        try
+        {
+            await auditService.LogAsync("Invoice", invoice.Id.ToString(), "Voided",
+                $"Invoice {invoice.InvoiceNumber} · Patient: {invoice.PatientName} · Total: {invoice.TotalAmount:C}", ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to audit-log invoice void for {InvoiceId}", invoice.Id);
+        }
+
         return true;
     }
 }
@@ -92,7 +118,8 @@ public class VoidInvoiceHandler(BillingDbContext db) : IRequestHandler<VoidInvoi
 public record SubmitClaimBody(decimal ClaimAmount);
 public record SubmitClaimCommand(Guid Id, decimal ClaimAmount) : IRequest<bool>;
 
-public class SubmitClaimHandler(BillingDbContext db) : IRequestHandler<SubmitClaimCommand, bool>
+public class SubmitClaimHandler(BillingDbContext db, IAuditService auditService, ILogger<SubmitClaimHandler> logger)
+    : IRequestHandler<SubmitClaimCommand, bool>
 {
     public async Task<bool> Handle(SubmitClaimCommand cmd, CancellationToken ct)
     {
@@ -100,6 +127,17 @@ public class SubmitClaimHandler(BillingDbContext db) : IRequestHandler<SubmitCla
         if (invoice is null || invoice.MedicalAidId is null) return false;
         invoice.SetMedAidClaim(cmd.ClaimAmount, MedAidClaimStatus.Pending);
         await db.SaveChangesAsync(ct);
+
+        try
+        {
+            await auditService.LogAsync("Invoice", invoice.Id.ToString(), "ClaimSubmitted",
+                $"Invoice {invoice.InvoiceNumber} · Patient: {invoice.PatientName} · Claim: {cmd.ClaimAmount:C}", ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to audit-log claim submission for {InvoiceId}", invoice.Id);
+        }
+
         return true;
     }
 }
@@ -107,7 +145,8 @@ public class SubmitClaimHandler(BillingDbContext db) : IRequestHandler<SubmitCla
 public record UpdateClaimStatusBody(string Status);
 public record UpdateClaimStatusCommand(Guid Id, string Status) : IRequest<bool>;
 
-public class UpdateClaimStatusHandler(BillingDbContext db) : IRequestHandler<UpdateClaimStatusCommand, bool>
+public class UpdateClaimStatusHandler(BillingDbContext db, IAuditService auditService, ILogger<UpdateClaimStatusHandler> logger)
+    : IRequestHandler<UpdateClaimStatusCommand, bool>
 {
     public async Task<bool> Handle(UpdateClaimStatusCommand cmd, CancellationToken ct)
     {
@@ -116,6 +155,17 @@ public class UpdateClaimStatusHandler(BillingDbContext db) : IRequestHandler<Upd
         if (invoice is null) return false;
         invoice.SetMedAidClaim(invoice.MedAidClaimAmount, status);
         await db.SaveChangesAsync(ct);
+
+        try
+        {
+            await auditService.LogAsync("Invoice", invoice.Id.ToString(), "ClaimStatusUpdated",
+                $"Invoice {invoice.InvoiceNumber} · Patient: {invoice.PatientName} · Status: {status}", ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to audit-log claim status update for {InvoiceId}", invoice.Id);
+        }
+
         return true;
     }
 }

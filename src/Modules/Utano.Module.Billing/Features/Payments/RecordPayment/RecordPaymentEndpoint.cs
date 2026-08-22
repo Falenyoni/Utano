@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Net;
 using Utano.Module.Billing.DatabaseMappings;
 using Utano.Module.Billing.Domain.Entities;
@@ -52,7 +53,12 @@ public class RecordPaymentValidator : AbstractValidator<RecordPaymentCommand>
     }
 }
 
-public class RecordPaymentHandler(BillingDbContext db, ICurrentUserService currentUser, IFiscalDevice fiscalDevice)
+public class RecordPaymentHandler(
+    BillingDbContext db,
+    ICurrentUserService currentUser,
+    IFiscalDevice fiscalDevice,
+    IAuditService auditService,
+    ILogger<RecordPaymentHandler> logger)
     : IRequestHandler<RecordPaymentCommand, RecordPaymentResponse?>
 {
     public async Task<RecordPaymentResponse?> Handle(RecordPaymentCommand cmd, CancellationToken ct)
@@ -87,6 +93,17 @@ public class RecordPaymentHandler(BillingDbContext db, ICurrentUserService curre
 
         db.Payments.Add(payment);
         await db.SaveChangesAsync(ct);
+
+        try
+        {
+            await auditService.LogAsync("Payment", payment.Id.ToString(), "Recorded",
+                $"Invoice {invoice.InvoiceNumber} · Patient: {invoice.PatientName} · Amount: {cmd.Amount:C} · Method: {cmd.Method}", ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to audit-log payment for {InvoiceId}", invoice.Id);
+        }
+
         return new RecordPaymentResponse(payment.Id, invoice.BalanceDue, invoice.Status.ToString());
     }
 }

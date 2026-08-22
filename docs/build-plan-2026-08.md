@@ -84,7 +84,7 @@ Items are grouped into phases by **dependency and effort**, not just severity �
 ## Phase 10 — Deferred by explicit decision
 *Last, per Bongani's own earlier call.*
 
-- [ ] **#13** — Broader audit trail (Billing, Inventory, Patients, Identity).
+- [x] **#13** — Broader audit trail (Billing, Inventory, Patients, Identity). Built 2026-08-22 — reused the existing `IAuditService`/`AuditLog` mechanism (no new infrastructure needed), inline fire-and-forget calls in each handler. Scope confirmed with Bongani first: Patients (Register/Update/Activate/Deactivate), Billing (Create/Issue/Void invoice, Record Payment, Claims, Payment Plan), Inventory (stock item metadata only — quantity changes stay covered by `StockTransaction`), Identity (Create/Update/Deactivate user, Assign roles, Reset password). Frontend filter dropdowns updated to match. No migration. All builds clean, not yet live-tested.
 - [x] **#14** — Email half done and **live-verified** 2026-08-16: appointment reminder emails to both doctor (if opted in) and patient (if they have an email on file), reusing `IEmailSender`. WhatsApp/SMS still needs a provider account — not started.
 
 ## Fold in opportunistically

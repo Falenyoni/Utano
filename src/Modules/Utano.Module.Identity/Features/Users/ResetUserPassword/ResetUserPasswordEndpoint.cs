@@ -56,6 +56,7 @@ public class ResetUserPasswordHandler(
     IPasswordService passwordService,
     ICurrentUserService currentUser,
     IEmailSender emailSender,
+    IAuditService auditService,
     IValidator<ResetUserPasswordCommand> validator,
     ILogger<ResetUserPasswordHandler> logger)
     : IRequestHandler<ResetUserPasswordCommand, bool>
@@ -90,6 +91,16 @@ public class ResetUserPasswordHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to send password-reset notification to user {UserId}", user.Id);
+        }
+
+        try
+        {
+            await auditService.LogAsync("User", user.Id.ToString(), "PasswordReset",
+                $"Name: {user.FullName} · Reset by an administrator", ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to audit-log password reset for {UserId}", user.Id);
         }
 
         return true;

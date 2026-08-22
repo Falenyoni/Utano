@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Net;
+using Utano.Module.Core.Services;
 using Utano.Module.Inventory.DatabaseMappings;
 using Utano.Module.Inventory.Domain.Enums;
 
@@ -54,7 +56,11 @@ public class UpdateStockItemValidator : AbstractValidator<UpdateStockItemCommand
     }
 }
 
-public class UpdateStockItemHandler(InventoryDbContext db) : IRequestHandler<UpdateStockItemCommand, bool>
+public class UpdateStockItemHandler(
+    InventoryDbContext db,
+    IAuditService auditService,
+    ILogger<UpdateStockItemHandler> logger)
+    : IRequestHandler<UpdateStockItemCommand, bool>
 {
     public async Task<bool> Handle(UpdateStockItemCommand cmd, CancellationToken ct)
     {
@@ -64,6 +70,17 @@ public class UpdateStockItemHandler(InventoryDbContext db) : IRequestHandler<Upd
         item.UpdateDetails(cmd.Name, cmd.Sku, cmd.Description, category, cmd.Unit,
             cmd.SellingPrice, cmd.CostPrice, cmd.ReorderLevel);
         await db.SaveChangesAsync(ct);
+
+        try
+        {
+            await auditService.LogAsync("StockItem", item.Id.ToString(), "Updated",
+                $"Item: {item.Name} · Category: {category}", ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to audit-log stock item update for {StockItemId}", item.Id);
+        }
+
         return true;
     }
 }

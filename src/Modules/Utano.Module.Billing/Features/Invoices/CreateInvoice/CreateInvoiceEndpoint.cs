@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Net;
 using Utano.Module.Billing.DatabaseMappings;
 using Utano.Module.Billing.Domain.Entities;
@@ -49,7 +50,11 @@ public class CreateInvoiceValidator : AbstractValidator<CreateInvoiceCommand>
     }
 }
 
-public class CreateInvoiceHandler(BillingDbContext db, ICurrentUserService currentUser)
+public class CreateInvoiceHandler(
+    BillingDbContext db,
+    ICurrentUserService currentUser,
+    IAuditService auditService,
+    ILogger<CreateInvoiceHandler> logger)
     : IRequestHandler<CreateInvoiceCommand, CreateInvoiceResponse>
 {
     public async Task<CreateInvoiceResponse> Handle(CreateInvoiceCommand cmd, CancellationToken ct)
@@ -61,6 +66,17 @@ public class CreateInvoiceHandler(BillingDbContext db, ICurrentUserService curre
 
         db.Invoices.Add(invoice);
         await db.SaveChangesAsync(ct);
+
+        try
+        {
+            await auditService.LogAsync("Invoice", invoice.Id.ToString(), "Created",
+                $"Invoice {invoice.InvoiceNumber} · Patient: {invoice.PatientName}", ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to audit-log invoice creation for {InvoiceId}", invoice.Id);
+        }
+
         return new CreateInvoiceResponse(invoice.Id, invoice.InvoiceNumber);
     }
 

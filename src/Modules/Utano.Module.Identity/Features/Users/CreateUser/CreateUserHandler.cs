@@ -1,6 +1,7 @@
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Utano.Module.Core.Exceptions;
 using Utano.Module.Core.Services;
 using Utano.Module.Identity.DatabaseMappings;
@@ -14,7 +15,9 @@ public class CreateUserHandler(
     IPasswordService passwordService,
     ICurrentUserService currentUserService,
     IdentityDbContext db,
-    IValidator<CreateUserCommand> validator)
+    IAuditService auditService,
+    IValidator<CreateUserCommand> validator,
+    ILogger<CreateUserHandler> logger)
     : IRequestHandler<CreateUserCommand, CreateUserResponse>
 {
     public async Task<CreateUserResponse> Handle(CreateUserCommand command, CancellationToken cancellationToken)
@@ -48,6 +51,16 @@ public class CreateUserHandler(
         {
             db.UserRoles.Add(new UserRoleAssignment(user.Id, systemRole.Id));
             await db.SaveChangesAsync(cancellationToken);
+        }
+
+        try
+        {
+            await auditService.LogAsync("User", user.Id.ToString(), "Created",
+                $"Name: {user.FullName} · Role: {user.Role}", cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to audit-log user creation for {UserId}", user.Id);
         }
 
         return new CreateUserResponse(

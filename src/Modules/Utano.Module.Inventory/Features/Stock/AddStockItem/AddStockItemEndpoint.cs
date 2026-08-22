@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using System.Net;
 using Utano.Module.Core.Services;
 using Utano.Module.Inventory.DatabaseMappings;
@@ -56,7 +57,11 @@ public class AddStockItemValidator : AbstractValidator<AddStockItemCommand>
     }
 }
 
-public class AddStockItemHandler(InventoryDbContext db, ICurrentUserService currentUser)
+public class AddStockItemHandler(
+    InventoryDbContext db,
+    ICurrentUserService currentUser,
+    IAuditService auditService,
+    ILogger<AddStockItemHandler> logger)
     : IRequestHandler<AddStockItemCommand, AddStockItemResponse>
 {
     public async Task<AddStockItemResponse> Handle(AddStockItemCommand cmd, CancellationToken ct)
@@ -67,6 +72,17 @@ public class AddStockItemHandler(InventoryDbContext db, ICurrentUserService curr
 
         db.StockItems.Add(item);
         await db.SaveChangesAsync(ct);
+
+        try
+        {
+            await auditService.LogAsync("StockItem", item.Id.ToString(), "Added",
+                $"Item: {item.Name} · Category: {category}", ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to audit-log stock item creation for {StockItemId}", item.Id);
+        }
+
         return new AddStockItemResponse(item.Id, item.Name);
     }
 }

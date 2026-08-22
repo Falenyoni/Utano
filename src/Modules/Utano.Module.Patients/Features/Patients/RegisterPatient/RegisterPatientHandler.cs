@@ -1,5 +1,6 @@
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using Utano.Module.Core.Exceptions;
 using Utano.Module.Core.Services;
 using Utano.Module.Patients.Domain.Entities;
@@ -13,7 +14,9 @@ public class RegisterPatientHandler(
     IPatientWriteRepository writeRepository,
     IPatientReadRepository readRepository,
     ICurrentUserService currentUserService,
-    IValidator<RegisterPatientCommand> validator)
+    IAuditService auditService,
+    IValidator<RegisterPatientCommand> validator,
+    ILogger<RegisterPatientHandler> logger)
     : IRequestHandler<RegisterPatientCommand, RegisterPatientResponse>
 {
     public async Task<RegisterPatientResponse> Handle(
@@ -67,6 +70,16 @@ public class RegisterPatientHandler(
         }
 
         await writeRepository.AddAsync(patient, cancellationToken);
+
+        try
+        {
+            await auditService.LogAsync("Patient", patient.Id.ToString(), "Registered",
+                $"Patient: {patient.FullName.Display}", cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to audit-log patient registration for {PatientId}", patient.Id);
+        }
 
         return new RegisterPatientResponse(
             patient.Id,

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Net;
 using Utano.Module.Billing.DatabaseMappings;
 using Utano.Module.Billing.Domain.Entities;
@@ -51,7 +52,11 @@ public class CreatePaymentPlanValidator : AbstractValidator<CreatePaymentPlanCom
     }
 }
 
-public class CreatePaymentPlanHandler(BillingDbContext db, ICurrentUserService currentUser)
+public class CreatePaymentPlanHandler(
+    BillingDbContext db,
+    ICurrentUserService currentUser,
+    IAuditService auditService,
+    ILogger<CreatePaymentPlanHandler> logger)
     : IRequestHandler<CreatePaymentPlanCommand, CreatePaymentPlanResponse?>
 {
     public async Task<CreatePaymentPlanResponse?> Handle(CreatePaymentPlanCommand cmd, CancellationToken ct)
@@ -68,6 +73,16 @@ public class CreatePaymentPlanHandler(BillingDbContext db, ICurrentUserService c
 
         db.PaymentPlans.Add(plan);
         await db.SaveChangesAsync(ct);
+
+        try
+        {
+            await auditService.LogAsync("PaymentPlan", plan.Id.ToString(), "Created",
+                $"Invoice {invoice.InvoiceNumber} · Patient: {invoice.PatientName} · {cmd.InstallmentCount} installments", ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to audit-log payment plan creation for {InvoiceId}", invoice.Id);
+        }
 
         var perInstallment = plan.Installments.FirstOrDefault()?.Amount ?? 0;
         return new CreatePaymentPlanResponse(plan.Id, plan.InstallmentCount, plan.TotalAmount, perInstallment);

@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using System.Net;
 using Utano.Module.Core.Exceptions;
 using Utano.Module.Core.Modules;
@@ -45,7 +46,9 @@ public record UpdateUserCommand(Guid Id, string FirstName, string LastName, stri
 public class UpdateUserHandler(
     IUserReadRepository readRepository,
     IUserWriteRepository writeRepository,
-    ICurrentUserService currentUser)
+    ICurrentUserService currentUser,
+    IAuditService auditService,
+    ILogger<UpdateUserHandler> logger)
     : IRequestHandler<UpdateUserCommand, bool>
 {
     public async Task<bool> Handle(UpdateUserCommand cmd, CancellationToken ct)
@@ -58,6 +61,17 @@ public class UpdateUserHandler(
 
         user.Update(cmd.FirstName, cmd.LastName, cmd.Role, cmd.Specialty);
         await writeRepository.UpdateAsync(user, ct);
+
+        try
+        {
+            await auditService.LogAsync("User", user.Id.ToString(), "Updated",
+                $"Name: {user.FullName} · Role: {user.Role}", ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to audit-log user update for {UserId}", user.Id);
+        }
+
         return true;
     }
 }
@@ -67,7 +81,9 @@ public record ActivateUserCommand(Guid Id) : IRequest<bool>;
 public class ActivateUserHandler(
     IUserReadRepository readRepository,
     IUserWriteRepository writeRepository,
-    ICurrentUserService currentUser)
+    ICurrentUserService currentUser,
+    IAuditService auditService,
+    ILogger<ActivateUserHandler> logger)
     : IRequestHandler<ActivateUserCommand, bool>
 {
     public async Task<bool> Handle(ActivateUserCommand cmd, CancellationToken ct)
@@ -77,6 +93,17 @@ public class ActivateUserHandler(
 
         user.Activate();
         await writeRepository.UpdateAsync(user, ct);
+
+        try
+        {
+            await auditService.LogAsync("User", user.Id.ToString(), "Activated",
+                $"Name: {user.FullName}", ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to audit-log user activation for {UserId}", user.Id);
+        }
+
         return true;
     }
 }

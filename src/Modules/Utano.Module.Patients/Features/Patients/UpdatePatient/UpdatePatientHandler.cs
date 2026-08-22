@@ -1,6 +1,8 @@
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using Utano.Module.Core.Exceptions;
+using Utano.Module.Core.Services;
 using Utano.Module.Patients.Domain.Enums;
 using Utano.Module.Patients.Domain.Interfaces;
 using Utano.Module.Patients.Domain.ValueObjects;
@@ -10,7 +12,9 @@ namespace Utano.Module.Patients.Features.Patients.UpdatePatient;
 public class UpdatePatientHandler(
     IPatientReadRepository readRepository,
     IPatientWriteRepository writeRepository,
-    IValidator<UpdatePatientCommand> validator)
+    IAuditService auditService,
+    IValidator<UpdatePatientCommand> validator,
+    ILogger<UpdatePatientHandler> logger)
     : IRequestHandler<UpdatePatientCommand, bool>
 {
     public async Task<bool> Handle(UpdatePatientCommand command, CancellationToken cancellationToken)
@@ -50,6 +54,17 @@ public class UpdatePatientHandler(
         }
 
         await writeRepository.UpdateAsync(patient, cancellationToken);
+
+        try
+        {
+            await auditService.LogAsync("Patient", patient.Id.ToString(), "Updated",
+                $"Patient: {patient.FullName.Display}", cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to audit-log patient update for {PatientId}", patient.Id);
+        }
+
         return true;
     }
 }
