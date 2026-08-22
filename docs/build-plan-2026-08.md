@@ -92,7 +92,7 @@ Items are grouped into phases by **dependency and effort**, not just severity �
 
 - [ ] **#15** — `CreatePracticeHandler`'s hardcoded system-role list.
 - [ ] **#16** — Dead code: `Visit.UpdateVitals()`.
-- [ ] **#39** — `NoShow` appointments have no available actions and no way to undo one. Found 2026-08-10.
+- [x] **#39** — `NoShow` appointments have no available actions and no way to undo one. Found 2026-08-10, fixed 2026-08-22 — Reschedule/Reassign/Cancel now surfaced for `NoShow` in the UI (backend always permitted them), plus a new "Undo No-Show" action (`NoShow` → `CheckedIn`) for the wrongly-auto-marked case. No migration. Not yet live-tested.
 - [x] **#40** — Login couldn't disambiguate two accounts sharing one email (per-practice uniqueness let this happen, `CreateUserCommand` didn't check globally like `CreatePracticeCommand` did). Found and fixed 2026-08-13 — app-layer check + DB constraint restored globally unique. Cleanup script run, migration applied, code pushed — **live 2026-08-14.**
 - [x] **#41** — **Cross-tenant data leak**: Audit Log page showed every practice's audit trail to every practice — `AuditLog` was the one entity missing from `ClinicalNotesDbContext`'s tenant query filter. Also had zero permission check (`[Authorize]` only). Found 2026-08-21, fixed same day — query filter added, `IRequirePermission` added. No migration. **Push and live-verify before treating as closed.**
 

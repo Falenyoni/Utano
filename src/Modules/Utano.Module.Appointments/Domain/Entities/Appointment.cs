@@ -118,6 +118,18 @@ public class Appointment : AggregateRoot, IHasDomainEvents
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
+    // Corrective action for a wrongly-auto-marked NoShow (the scan job's 1hr grace period
+    // elapsed, but the patient did in fact show up) - goes straight to CheckedIn rather than
+    // back to Scheduled/Confirmed, since the point is to get them into the normal visit flow
+    // immediately, not to pretend the missed grace period never happened.
+    public void UndoNoShow()
+    {
+        if (Status != AppointmentStatus.NoShow)
+            throw new UtanoDomainException("Only a no-show appointment can be undone.");
+        Status = AppointmentStatus.CheckedIn;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
     public void Complete()
     {
         if (Status is not (AppointmentStatus.Scheduled or AppointmentStatus.Confirmed or AppointmentStatus.InProgress))
