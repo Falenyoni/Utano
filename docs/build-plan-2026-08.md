@@ -66,9 +66,11 @@ Items are grouped into phases by **dependency and effort**, not just severity �
 ## Phase 7 — Bigger, unscoped features
 *Design pass needed before building — not urgent.*
 
-- [ ] **#27** — Stock Take / physical count reconciliation workflow.
-- [ ] **#28** — Price adjustment strategy (bulk repricing, margin-based pricing, price history).
-- [ ] **#21** — Revenue Summary by-doctor/by-service breakdown. **⏸ Stays paused until #24 lands** — Bongani's explicit sequencing call, invoice data will look different once auto-invoicing exists.
+- [x] **#27** — Stock Take / physical count reconciliation workflow. Built 2026-08-22 — new `StockTake`/`StockTakeLine` aggregate, scope confirmed first (whole inventory or one category, partial counts allowed). Finalize applies the existing `StockItem.Adjust()` per counted line with variance, so `StockTransaction` stays the single source of truth. New `StockTakesPage`/`StockTakeDetailPage`. Migration `AddStockTakes` (2 new tables, purely additive). Both builds clean, not yet live-tested.
+- [x] **#28** — Price adjustment strategy. Built 2026-08-22 — `StockItem.AdjustPricing()`, `POST /api/inventory/stock/bulk-reprice` (category + Selling/Cost/Both + Percent/Fixed), margin calculator on Add/Edit Stock Item forms, price-change delta folded into the existing audit entry (reuses #13's `AuditLog`, no new table). No migration. Both builds clean, not yet live-tested.
+- [x] **#21** — Revenue Summary by-doctor/by-service breakdown. Built 2026-08-22 — no schema change, both dimensions (`Invoice.DoctorId`/`DoctorName`, `InvoiceLineItem.Type`) already existed. Two new tables on the Revenue report + PDF export. Build clean.
+
+**Phase 7 status: fully built 2026-08-22, not yet live-tested.**
 
 ## Phase 8 — Patient model change
 *Bigger domain change — touches registration form + duplicate-check logic. Own focused session.*

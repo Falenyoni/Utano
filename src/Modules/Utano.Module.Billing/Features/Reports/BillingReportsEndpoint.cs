@@ -31,6 +31,8 @@ public class BillingReportsEndpoint(ISender sender) : ControllerBase
 public record RevenueSummaryQuery(string? DateFrom, string? DateTo) : IRequest<RevenueSummaryResponse>;
 
 public record MonthlyRevenueRow(string Month, decimal Invoiced, decimal Collected);
+public record DoctorRevenueRow(string DoctorName, decimal Invoiced, decimal Collected, int InvoiceCount);
+public record ServiceRevenueRow(string ServiceType, decimal Amount, int LineItemCount);
 
 public record RevenueSummaryResponse(
     decimal TotalInvoiced,
@@ -39,7 +41,9 @@ public record RevenueSummaryResponse(
     int InvoiceCount,
     int PaidCount,
     int OutstandingCount,
-    IReadOnlyList<MonthlyRevenueRow> ByMonth);
+    IReadOnlyList<MonthlyRevenueRow> ByMonth,
+    IReadOnlyList<DoctorRevenueRow> ByDoctor,
+    IReadOnlyList<ServiceRevenueRow> ByService);
 
 public class RevenueSummaryHandler(BillingDbContext db) : IRequestHandler<RevenueSummaryQuery, RevenueSummaryResponse>
 {
@@ -54,7 +58,7 @@ public class RevenueSummaryHandler(BillingDbContext db) : IRequestHandler<Revenu
             query = query.Where(i => i.InvoiceDate <= to);
 
         var invoices = await query
-            .Select(i => new { i.InvoiceDate, i.TotalAmount, i.AmountPaid, i.Status })
+            .Select(i => new { i.Id, i.InvoiceDate, i.TotalAmount, i.AmountPaid, i.Status, i.DoctorName })
             .ToListAsync(ct);
 
         var totalInvoiced = invoices.Sum(i => i.TotalAmount);
@@ -71,11 +75,31 @@ public class RevenueSummaryHandler(BillingDbContext db) : IRequestHandler<Revenu
                 g.Sum(i => i.AmountPaid)))
             .ToList();
 
+        // Invoices without a doctor (e.g. product-sale-only invoices) group under "Unassigned"
+        // rather than being silently dropped from this breakdown.
+        var byDoctor = invoices
+            .GroupBy(i => i.DoctorName ?? "Unassigned")
+            .OrderByDescending(g => g.Sum(i => i.TotalAmount))
+            .Select(g => new DoctorRevenueRow(g.Key, g.Sum(i => i.TotalAmount), g.Sum(i => i.AmountPaid), g.Count()))
+            .ToList();
+
+        var invoiceIds = invoices.Select(i => i.Id).ToList();
+        var lineItems = await db.InvoiceLineItems.AsNoTracking()
+            .Where(li => invoiceIds.Contains(li.InvoiceId))
+            .Select(li => new { li.Type, li.Amount })
+            .ToListAsync(ct);
+
+        var byService = lineItems
+            .GroupBy(li => li.Type.ToString())
+            .OrderByDescending(g => g.Sum(li => li.Amount))
+            .Select(g => new ServiceRevenueRow(g.Key, g.Sum(li => li.Amount), g.Count()))
+            .ToList();
+
         return new RevenueSummaryResponse(
             totalInvoiced, totalCollected, outstanding,
             invoices.Count,
             invoices.Count(i => i.Status == InvoiceStatus.Paid),
             invoices.Count(i => i.Status != InvoiceStatus.Paid),
-            byMonth);
+            byMonth, byDoctor, byService);
     }
 }

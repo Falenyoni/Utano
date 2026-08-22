@@ -9,6 +9,8 @@ public class InventoryDbContext(DbContextOptions<InventoryDbContext> options, IC
 {
     public DbSet<StockItem> StockItems { get; set; }
     public DbSet<StockTransaction> StockTransactions { get; set; }
+    public DbSet<StockTake> StockTakes { get; set; }
+    public DbSet<StockTakeLine> StockTakeLines { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -19,6 +21,9 @@ public class InventoryDbContext(DbContextOptions<InventoryDbContext> options, IC
             .HasQueryFilter(s => s.PracticeId == currentUser.PracticeId);
 
         modelBuilder.Entity<StockTransaction>()
+            .HasQueryFilter(t => t.PracticeId == currentUser.PracticeId);
+
+        modelBuilder.Entity<StockTake>()
             .HasQueryFilter(t => t.PracticeId == currentUser.PracticeId);
     }
 }

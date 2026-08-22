@@ -67,14 +67,22 @@ public class UpdateStockItemHandler(
         var item = await db.StockItems.FirstOrDefaultAsync(s => s.Id == cmd.Id, ct);
         if (item is null) return false;
         var category = Enum.Parse<StockCategory>(cmd.Category, ignoreCase: true);
+
+        var oldSellingPrice = item.SellingPrice;
+        var oldCostPrice = item.CostPrice;
+
         item.UpdateDetails(cmd.Name, cmd.Sku, cmd.Description, category, cmd.Unit,
             cmd.SellingPrice, cmd.CostPrice, cmd.ReorderLevel);
         await db.SaveChangesAsync(ct);
 
         try
         {
+            var priceChanged = oldSellingPrice != cmd.SellingPrice || oldCostPrice != cmd.CostPrice;
+            var priceNote = priceChanged
+                ? $" · Price: Selling {oldSellingPrice:C}→{cmd.SellingPrice:C}, Cost {oldCostPrice:C}→{cmd.CostPrice:C}"
+                : "";
             await auditService.LogAsync("StockItem", item.Id.ToString(), "Updated",
-                $"Item: {item.Name} · Category: {category}", ct);
+                $"Item: {item.Name} · Category: {category}{priceNote}", ct);
         }
         catch (Exception ex)
         {

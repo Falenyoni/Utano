@@ -71,6 +71,18 @@ public class StockItem : AggregateRoot
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
+    // Narrower than UpdateDetails - only touches pricing, so a bulk reprice pass doesn't have to
+    // re-specify name/sku/description/category/unit/reorderLevel for every item just to change a
+    // price.
+    public void AdjustPricing(decimal newSellingPrice, decimal newCostPrice)
+    {
+        if (newSellingPrice < 0) throw new UtanoDomainException("Selling price cannot be negative.");
+        if (newCostPrice < 0) throw new UtanoDomainException("Cost price cannot be negative.");
+        SellingPrice = newSellingPrice;
+        CostPrice = newCostPrice;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
     public StockTransaction Receive(decimal quantity, decimal? unitCost, string? notes, Guid? referenceId = null)
     {
         if (quantity <= 0) throw new UtanoDomainException("Receive quantity must be positive.");
