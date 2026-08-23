@@ -14,6 +14,7 @@ public class IdentityDbContext(DbContextOptions<IdentityDbContext> options) : Db
     public DbSet<UserRoleAssignment> UserRoles { get; set; }
     public DbSet<PracticeFeature> PracticeFeatures { get; set; }
     public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+    public DbSet<EmailVerificationToken> EmailVerificationTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

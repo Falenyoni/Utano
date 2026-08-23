@@ -25,6 +25,7 @@ public static class AppConfiguration
 
         services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
         services.Configure<PasswordResetSettings>(configuration.GetSection("PasswordReset"));
+        services.Configure<EmailVerificationSettings>(configuration.GetSection("EmailVerification"));
 
         services.AddDbContext<IdentityDbContext>(options =>
             options.UseNpgsql(configuration.GetConnectionString("UtanoDb")));

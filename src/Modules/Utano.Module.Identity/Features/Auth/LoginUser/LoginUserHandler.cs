@@ -50,6 +50,10 @@ public class LoginUserHandler(
             throw new UtanoDomainException(
                 $"Too many failed login attempts. Please try again in {Math.Ceiling((user.LockedOutUntil!.Value - DateTimeOffset.UtcNow).TotalMinutes)} minute(s).");
 
+        if (!user.IsEmailVerified)
+            throw new UtanoDomainException(
+                "Please verify your email before logging in. Check your inbox for the verification link, or request a new one.");
+
         if (user.Status != UserStatus.Active)
             throw new UtanoDomainException("Your account is not active. Contact your administrator.");
 

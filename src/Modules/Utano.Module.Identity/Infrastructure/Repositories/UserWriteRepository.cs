@@ -43,4 +43,20 @@ public class UserWriteRepository(IdentityDbContext context) : IUserWriteReposito
         token.MarkUsed();
         await context.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task AddEmailVerificationTokenAsync(Guid userId, string tokenHash, int expiryMinutes, CancellationToken cancellationToken = default)
+    {
+        var verificationToken = EmailVerificationToken.Create(userId, tokenHash, expiryMinutes);
+        await context.EmailVerificationTokens.AddAsync(verificationToken, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task MarkEmailVerificationTokenUsedAsync(Guid tokenId, CancellationToken cancellationToken = default)
+    {
+        var token = await context.EmailVerificationTokens.FirstOrDefaultAsync(t => t.Id == tokenId, cancellationToken);
+        if (token is null) return;
+
+        token.MarkUsed();
+        await context.SaveChangesAsync(cancellationToken);
+    }
 }

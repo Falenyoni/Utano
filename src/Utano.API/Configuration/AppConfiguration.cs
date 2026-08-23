@@ -40,6 +40,21 @@ public static class AppConfiguration
         builder.Services.AddRateLimiter(options =>
         {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+            // Baseline applied to every request regardless of endpoint - until now, only the 3
+            // named policies below had any throttling at all, meaning every other endpoint
+            // (patients, billing, inventory, appointments...) had none. This doesn't replace those
+            // tighter policies, it stacks under them: a request still has to clear both.
+            options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 300,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0,
+                    }));
+
             options.AddPolicy("signup", httpContext =>
                 RateLimitPartition.GetFixedWindowLimiter(
                     partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
@@ -68,6 +83,17 @@ public static class AppConfiguration
             // Public, unauthenticated, and sends a real email per request - without this, it's an
             // easy way to spam a victim's inbox or burn through Resend's send quota.
             options.AddPolicy("forgot-password", httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 5,
+                        Window = TimeSpan.FromHours(1),
+                        QueueLimit = 0,
+                    }));
+
+            // Same shape as forgot-password - public, unauthenticated, sends a real email.
+            options.AddPolicy("resend-verification", httpContext =>
                 RateLimitPartition.GetFixedWindowLimiter(
                     partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
                     factory: _ => new FixedWindowRateLimiterOptions

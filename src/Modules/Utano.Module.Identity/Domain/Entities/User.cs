@@ -21,13 +21,18 @@ public class User : AggregateRoot
     public UserStatus Status { get; private set; }
     public int FailedLoginAttempts { get; private set; }
     public DateTimeOffset? LockedOutUntil { get; private set; }
+    public bool IsEmailVerified { get; private set; }
 
     public string FullName => $"{FirstName} {LastName}";
     public IReadOnlyCollection<RefreshToken> RefreshTokens => _refreshTokens.AsReadOnly();
     public IReadOnlyCollection<UserRoleAssignment> RoleAssignments => _roleAssignments.AsReadOnly();
 
+    // emailVerified defaults to true because most callers (e.g. an admin inviting a new staff
+    // member) are creating a user the admin already vouches for - only the self-service practice
+    // signup path (CreatePracticeHandler) passes false, since that's the one flow where nobody
+    // has vetted the email address yet.
     public static User Create(Guid practiceId, string firstName, string lastName,
-        string email, string passwordHash, string role)
+        string email, string passwordHash, string role, bool emailVerified = true)
     {
         if (string.IsNullOrWhiteSpace(firstName))
             throw new UtanoDomainException("First name is required.");
@@ -48,6 +53,7 @@ public class User : AggregateRoot
             PasswordHash = passwordHash,
             Role = role,
             Status = UserStatus.Active,
+            IsEmailVerified = emailVerified,
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow
         };
@@ -133,6 +139,12 @@ public class User : AggregateRoot
     {
         FailedLoginAttempts = 0;
         LockedOutUntil = null;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void MarkEmailVerified()
+    {
+        IsEmailVerified = true;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 }

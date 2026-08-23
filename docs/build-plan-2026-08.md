@@ -89,6 +89,12 @@ Items are grouped into phases by **dependency and effort**, not just severity �
 - [x] **#13** — Broader audit trail (Billing, Inventory, Patients, Identity). Built 2026-08-22 — reused the existing `IAuditService`/`AuditLog` mechanism (no new infrastructure needed), inline fire-and-forget calls in each handler. Scope confirmed with Bongani first: Patients (Register/Update/Activate/Deactivate), Billing (Create/Issue/Void invoice, Record Payment, Claims, Payment Plan), Inventory (stock item metadata only — quantity changes stay covered by `StockTransaction`), Identity (Create/Update/Deactivate user, Assign roles, Reset password). Frontend filter dropdowns updated to match. No migration. **Live-tested clean 2026-08-23.**
 - [x] **#14** — Email half done and **live-verified** 2026-08-16: appointment reminder emails to both doctor (if opted in) and patient (if they have an email on file), reusing `IEmailSender`. WhatsApp/SMS still needs a provider account — not started.
 
+## Phase 11 — Signup abuse hardening
+*Prompted by an architecture discussion (2026-08-23) about rate limiting, gateway protection, and whether self-service practice registration needs vetting.*
+
+- [x] **#42** — Global IP-based rate-limit baseline (300 req/min/IP) across every endpoint, stacked underneath the existing 3 tighter named policies (login/signup/forgot-password). Previously zero endpoints outside those 3 had any throttling at all. Built 2026-08-23. Build clean, not yet load-tested.
+- [x] **#43** — Email verification required before a self-signup admin can log in; 30-day trial now starts at verification, not registration. `POST /api/auth/verify-email` + `POST /api/auth/resend-verification` (rate-limited, same silent pattern as forgot-password). Existing users backfilled as verified so nobody already active gets locked out. Built 2026-08-23. Backend + frontend build/typecheck clean, not yet migrated/live-tested.
+
 ## Fold in opportunistically
 *Not worth a dedicated pass — fix when nearby code gets touched anyway.*
 

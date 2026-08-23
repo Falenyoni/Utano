@@ -85,4 +85,12 @@ public class UserReadRepository(IdentityDbContext context) : IUserReadRepository
                 && t.UsedAt == null
                 && t.ExpiresAt > DateTimeOffset.UtcNow, cancellationToken);
     }
+
+    public async Task<EmailVerificationToken?> GetValidEmailVerificationTokenAsync(string tokenHash, CancellationToken cancellationToken = default)
+    {
+        return await context.EmailVerificationTokens
+            .FirstOrDefaultAsync(t => t.TokenHash == tokenHash
+                && t.UsedAt == null
+                && t.ExpiresAt > DateTimeOffset.UtcNow, cancellationToken);
+    }
 }

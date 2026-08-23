@@ -1,11 +1,15 @@
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Utano.Module.Core.Exceptions;
 using Utano.Module.Core.Modules;
+using Utano.Module.Core.Services;
+using Utano.Module.Identity.Configuration;
 using Utano.Module.Identity.Domain.Entities;
 using Utano.Module.Identity.DatabaseMappings;
-using Utano.Module.Identity.Domain.Entities;
 using Utano.Module.Identity.Domain.Interfaces;
+using Utano.Module.Identity.Features.Auth;
 
 namespace Utano.Module.Identity.Features.Auth.CreatePractice;
 
@@ -15,7 +19,10 @@ public class CreatePracticeHandler(
     IPasswordService passwordService,
     IdentityDbContext db,
     IEnumerable<IModuleDescriptor> moduleDescriptors,
-    IValidator<CreatePracticeCommand> validator)
+    IValidator<CreatePracticeCommand> validator,
+    IEmailSender emailSender,
+    IOptions<EmailVerificationSettings> emailVerificationSettings,
+    ILogger<CreatePracticeHandler> logger)
     : IRequestHandler<CreatePracticeCommand, CreatePracticeResponse>
 {
     // Keyed off SystemRoles.All so adding a new system role only requires adding its description
@@ -42,8 +49,9 @@ public class CreatePracticeHandler(
             command.Name, command.ContactEmail,
             command.ContactPhone, command.PhysicalAddress);
 
-        practice.StartTrial(30);
-
+        // Trial doesn't start yet - StartTrial(30) happens when the admin verifies their email
+        // (see VerifyEmailHandler), so a slow-to-verify signup doesn't lose trial days, and an
+        // unverified signup never gets a live trial at all.
         await practiceRepository.AddAsync(practice, cancellationToken);
 
         var passwordHash = passwordService.Hash(command.AdminPassword);
@@ -54,7 +62,8 @@ public class CreatePracticeHandler(
             command.AdminLastName,
             command.AdminEmail,
             passwordHash,
-            SystemRoles.Admin);
+            SystemRoles.Admin,
+            emailVerified: false);
 
         await userWriteRepository.AddAsync(admin, cancellationToken);
 
@@ -69,6 +78,31 @@ public class CreatePracticeHandler(
         db.PracticeFeatures.AddRange(features);
 
         await db.SaveChangesAsync(cancellationToken);
+
+        var rawToken = EmailVerificationTokenHasher.GenerateToken();
+        var tokenHash = EmailVerificationTokenHasher.Hash(rawToken);
+        await userWriteRepository.AddEmailVerificationTokenAsync(
+            admin.Id, tokenHash, emailVerificationSettings.Value.ExpiryMinutes, cancellationToken);
+
+        var verifyUrl = $"{emailVerificationSettings.Value.FrontendBaseUrl}/verify-email?token={rawToken}";
+        var html = $"""
+            <p>Hi {admin.FirstName},</p>
+            <p>Welcome to Utano. Click the link below to verify your email and activate your 30-day trial.</p>
+            <p><a href="{verifyUrl}">Verify your email</a></p>
+            <p>This link expires in {emailVerificationSettings.Value.ExpiryMinutes / 60} hours.</p>
+            """;
+
+        try
+        {
+            await emailSender.SendAsync(admin.Email.Value, "Verify your email to activate your Utano trial", html, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            // Swallowed deliberately - the practice/admin record already exists at this point, and
+            // failing the whole signup because the confirmation email didn't send would be worse
+            // than the admin having to use "resend verification" once they notice nothing arrived.
+            logger.LogError(ex, "Failed to send verification email to user {UserId}", admin.Id);
+        }
 
         return new CreatePracticeResponse(practice.Id, practice.Name, admin.Id, admin.Email.Value);
     }
