@@ -66,11 +66,11 @@ Items are grouped into phases by **dependency and effort**, not just severity �
 ## Phase 7 — Bigger, unscoped features
 *Design pass needed before building — not urgent.*
 
-- [x] **#27** — Stock Take / physical count reconciliation workflow. Built 2026-08-22 — new `StockTake`/`StockTakeLine` aggregate, scope confirmed first (whole inventory or one category, partial counts allowed). Finalize applies the existing `StockItem.Adjust()` per counted line with variance, so `StockTransaction` stays the single source of truth. New `StockTakesPage`/`StockTakeDetailPage`. Migration `AddStockTakes` (2 new tables, purely additive). Both builds clean, not yet live-tested.
-- [x] **#28** — Price adjustment strategy. Built 2026-08-22 — `StockItem.AdjustPricing()`, `POST /api/inventory/stock/bulk-reprice` (category + Selling/Cost/Both + Percent/Fixed), margin calculator on Add/Edit Stock Item forms, price-change delta folded into the existing audit entry (reuses #13's `AuditLog`, no new table). No migration. Both builds clean, not yet live-tested.
+- [x] **#27** — Stock Take / physical count reconciliation workflow. Built 2026-08-22 — new `StockTake`/`StockTakeLine` aggregate, scope confirmed first (whole inventory or one category, partial counts allowed). Finalize applies the existing `StockItem.Adjust()` per counted line with variance, so `StockTransaction` stays the single source of truth. New `StockTakesPage`/`StockTakeDetailPage`. Migration `AddStockTakes` (2 new tables, purely additive). **Live-tested clean 2026-08-23.**
+- [x] **#28** — Price adjustment strategy. Built 2026-08-22 — `StockItem.AdjustPricing()`, `POST /api/inventory/stock/bulk-reprice` (category + Selling/Cost/Both + Percent/Fixed), margin calculator on Add/Edit Stock Item forms, price-change delta folded into the existing audit entry (reuses #13's `AuditLog`, no new table). No migration. **Live-tested clean 2026-08-23.**
 - [x] **#21** — Revenue Summary by-doctor/by-service breakdown. Built 2026-08-22 — no schema change, both dimensions (`Invoice.DoctorId`/`DoctorName`, `InvoiceLineItem.Type`) already existed. Two new tables on the Revenue report + PDF export. Build clean.
 
-**Phase 7 status: fully built 2026-08-22, not yet live-tested.**
+**Phase 7 status: fully built 2026-08-22, live-tested clean 2026-08-23.**
 
 ## Phase 8 — Patient model change
 *Bigger domain change — touches registration form + duplicate-check logic. Own focused session.*
@@ -86,17 +86,17 @@ Items are grouped into phases by **dependency and effort**, not just severity �
 ## Phase 10 — Deferred by explicit decision
 *Last, per Bongani's own earlier call.*
 
-- [x] **#13** — Broader audit trail (Billing, Inventory, Patients, Identity). Built 2026-08-22 — reused the existing `IAuditService`/`AuditLog` mechanism (no new infrastructure needed), inline fire-and-forget calls in each handler. Scope confirmed with Bongani first: Patients (Register/Update/Activate/Deactivate), Billing (Create/Issue/Void invoice, Record Payment, Claims, Payment Plan), Inventory (stock item metadata only — quantity changes stay covered by `StockTransaction`), Identity (Create/Update/Deactivate user, Assign roles, Reset password). Frontend filter dropdowns updated to match. No migration. All builds clean, not yet live-tested.
+- [x] **#13** — Broader audit trail (Billing, Inventory, Patients, Identity). Built 2026-08-22 — reused the existing `IAuditService`/`AuditLog` mechanism (no new infrastructure needed), inline fire-and-forget calls in each handler. Scope confirmed with Bongani first: Patients (Register/Update/Activate/Deactivate), Billing (Create/Issue/Void invoice, Record Payment, Claims, Payment Plan), Inventory (stock item metadata only — quantity changes stay covered by `StockTransaction`), Identity (Create/Update/Deactivate user, Assign roles, Reset password). Frontend filter dropdowns updated to match. No migration. **Live-tested clean 2026-08-23.**
 - [x] **#14** — Email half done and **live-verified** 2026-08-16: appointment reminder emails to both doctor (if opted in) and patient (if they have an email on file), reusing `IEmailSender`. WhatsApp/SMS still needs a provider account — not started.
 
 ## Fold in opportunistically
 *Not worth a dedicated pass — fix when nearby code gets touched anyway.*
 
-- [ ] **#15** — `CreatePracticeHandler`'s hardcoded system-role list.
-- [ ] **#16** — Dead code: `Visit.UpdateVitals()`.
-- [x] **#39** — `NoShow` appointments have no available actions and no way to undo one. Found 2026-08-10, fixed 2026-08-22 — Reschedule/Reassign/Cancel now surfaced for `NoShow` in the UI (backend always permitted them), plus a new "Undo No-Show" action (`NoShow` → `CheckedIn`) for the wrongly-auto-marked case. No migration. Not yet live-tested.
+- [x] **#15** — `CreatePracticeHandler`'s hardcoded system-role list. Fixed 2026-08-23 — replaced 6 hand-written `SeedRole(...)` calls (a parallel list to `SystemRoles.All`, easy to forget updating) with a loop over `SystemRoles.All` keyed against a `RoleDescriptions` dictionary; a role missing its description now throws immediately at practice-creation time instead of silently seeding nothing. No migration, no behavior change for existing roles. Build clean.
+- [x] **#16** — Dead code: `Visit.UpdateVitals()`. Confirmed zero callers anywhere in the codebase (superseded by the triage flow), deleted 2026-08-23. Build clean.
+- [x] **#39** — `NoShow` appointments have no available actions and no way to undo one. Found 2026-08-10, fixed 2026-08-22 — Reschedule/Reassign/Cancel now surfaced for `NoShow` in the UI (backend always permitted them), plus a new "Undo No-Show" action (`NoShow` → `CheckedIn`) for the wrongly-auto-marked case. No migration. **Live-tested clean 2026-08-23** (full batched QA pass).
 - [x] **#40** — Login couldn't disambiguate two accounts sharing one email (per-practice uniqueness let this happen, `CreateUserCommand` didn't check globally like `CreatePracticeCommand` did). Found and fixed 2026-08-13 — app-layer check + DB constraint restored globally unique. Cleanup script run, migration applied, code pushed — **live 2026-08-14.**
-- [x] **#41** — **Cross-tenant data leak**: Audit Log page showed every practice's audit trail to every practice — `AuditLog` was the one entity missing from `ClinicalNotesDbContext`'s tenant query filter. Also had zero permission check (`[Authorize]` only). Found 2026-08-21, fixed same day — query filter added, `IRequirePermission` added. No migration. **Push and live-verify before treating as closed.**
+- [x] **#41** — **Cross-tenant data leak**: Audit Log page showed every practice's audit trail to every practice — `AuditLog` was the one entity missing from `ClinicalNotesDbContext`'s tenant query filter. Also had zero permission check (`[Authorize]` only). Found 2026-08-21, fixed same day — query filter added, `IRequirePermission` added. No migration. **Deployed and live-verified clean 2026-08-23** — each practice now correctly sees only its own audit trail.
 
 ---
 

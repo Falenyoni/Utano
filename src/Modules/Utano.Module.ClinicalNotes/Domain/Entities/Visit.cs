@@ -81,22 +81,6 @@ public class Visit : AggregateRoot, IHasDomainEvents
         };
     }
 
-    public void UpdateVitals(
-        int? bpSystolic, int? bpDiastolic,
-        decimal? weightKg, decimal? heightCm,
-        decimal? temperatureCelsius, int? pulseRate,
-        decimal? oxygenSaturation)
-    {
-        BloodPressureSystolic = bpSystolic;
-        BloodPressureDiastolic = bpDiastolic;
-        WeightKg = weightKg;
-        HeightCm = heightCm;
-        TemperatureCelsius = temperatureCelsius;
-        PulseRate = pulseRate;
-        OxygenSaturation = oxygenSaturation;
-        UpdatedAt = DateTimeOffset.UtcNow;
-    }
-
     public void UpdateClinicalNotes(
         string? chiefComplaint, string? symptoms,
         string? diagnosis, string? treatment,
